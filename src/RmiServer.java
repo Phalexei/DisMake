@@ -3,6 +3,11 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 
+/*
+ * RmiServer
+ *
+ * Basic implentation of a server
+ */
 public class RmiServer extends UnicastRemoteObject implements RmiServerIntf {
     public static int i = 0;
 
@@ -10,6 +15,7 @@ public class RmiServer extends UnicastRemoteObject implements RmiServerIntf {
         super(0);    // required to avoid the 'rmic' step
     }
 
+    @Override
     public String getMessage() {
         return String.valueOf(i++);
     }
@@ -26,7 +32,6 @@ public class RmiServer extends UnicastRemoteObject implements RmiServerIntf {
         }
 
         //Instantiate RmiServer
-
         RmiServer obj = new RmiServer();
 
         // Bind this object instance to the name "RmiServer"
