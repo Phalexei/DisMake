@@ -1,55 +1,19 @@
 package com.github.phalexei.dismake.server;
 
-import com.github.phalexei.dismake.parser.Parser;
-import com.github.phalexei.dismake.parser.Parser.DependencyNotFoundException;
-
-import java.rmi.Naming;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.server.UnicastRemoteObject;
 
 /*
- * RmiServer
+ * public interface RmiServerIntf
+ * extends Remote
  *
- * Basic implentation of a server
+ * Used to specify the methods we can call on a remote
+ * server
  */
-public class RmiServer extends UnicastRemoteObject implements RmiServerIntf {
-    public static int i = 0;
+public interface RmiServer extends Remote {
 
-    public RmiServer() throws RemoteException {
-        super(0);    // required to avoid the 'rmic' step
-    }
-
-    @Override
-    public String getMessage() {
-        return String.valueOf(i++);
-    }
-
-    public static void main(String args[]) throws Exception {
-        System.out.println("RMI server started");
-
-        try { //special exception handler for registry creation
-            LocateRegistry.createRegistry(1099);
-            System.out.println("java RMI registry created.");
-        } catch (RemoteException e) {
-            //do nothing, error means registry already exists
-            System.out.println("java RMI registry already exists.");
-        }
-
-        //Instantiate RmiServer
-        RmiServer obj = new RmiServer();
-
-        // Bind this object instance to the name "RmiServer"
-        Naming.rebind("//localhost/RmiServer", obj);
-        System.out.println("PeerServer bound in registry");
-
-        if (args.length > 0) {
-            try {
-                //TODO: use return value
-                Parser.parse(args[0]);
-            } catch (DependencyNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+    /*
+     * Returns a generic String message
+     */
+    public String getMessage() throws RemoteException;
 }

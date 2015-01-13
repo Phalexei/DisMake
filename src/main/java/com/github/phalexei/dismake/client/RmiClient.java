@@ -1,6 +1,6 @@
 package com.github.phalexei.dismake.client;
 
-import com.github.phalexei.dismake.server.RmiServerIntf;
+import com.github.phalexei.dismake.server.RmiServer;
 
 import java.rmi.Naming;
 
@@ -9,7 +9,7 @@ import java.rmi.Naming;
  */
 public class RmiClient {
     public static void main(String args[]) throws Exception {
-        RmiServerIntf obj = (RmiServerIntf)Naming.lookup("//localhost/RmiServer");
+        RmiServer obj = (RmiServer)Naming.lookup("//localhost/RmiServer");
         for (int i = 0; i < 10; i++)
             System.out.println(obj.getMessage());
     }

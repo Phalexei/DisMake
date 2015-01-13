@@ -1,7 +1,7 @@
 package com.github.phalexei.dismake;
 
 import com.github.phalexei.dismake.client.RmiClient;
-import com.github.phalexei.dismake.server.RmiServer;
+import com.github.phalexei.dismake.server.RmiServerImpl;
 
 public class Main {
 
@@ -39,7 +39,7 @@ public class Main {
 
         // TODO Start Server or Client
         if (isServer) {
-            RmiServer.main(new String[]{makeFile});
+            RmiServerImpl.main(new String[]{makeFile});
         } else {
             RmiClient.main(new String[]{serverUrl});
         }
