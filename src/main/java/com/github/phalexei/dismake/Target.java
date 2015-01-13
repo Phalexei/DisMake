@@ -1,4 +1,5 @@
 package com.github.phalexei.dismake;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,15 +10,17 @@ import java.util.Map;
  *
  * Our structure
  */
-public class Target {
+public class Target implements Serializable {
 	private String name;
 	private Map<String, Target> dependencies;
 	private List<String> weakDependencies;
 	private String command;
+	private int dependenciesCounter;
 
 	public Target(String command, String name, List<String> dependencies) {
 		this.name = name;
 		this.weakDependencies = new ArrayList<>(dependencies);
+		this.dependenciesCounter = dependencies.size();
 		this.command = command;
 		this.dependencies = new HashMap<>();
 	}
@@ -43,10 +46,6 @@ public class Target {
 	public String getName() {
 		return name;
 	}
-	
-	public Target getDependency(String name) {
-		return dependencies.get(name);
-	}
 
 	public List<String> getWeakDependencies() {
 		return weakDependencies;
@@ -58,5 +57,17 @@ public class Target {
 
 	public void cleanWeakDependencies() {
 		weakDependencies.clear();
+	}
+
+	public Map<String, Target> getDependencies() {
+		return dependencies;
+	}
+
+	public void resolveOneDependency() {
+		dependenciesCounter--;
+	}
+
+	public boolean available() {
+		return dependenciesCounter == 0;
 	}
 }

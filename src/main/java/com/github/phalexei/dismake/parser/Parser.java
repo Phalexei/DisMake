@@ -34,7 +34,7 @@ public class Parser {
 					if (trueDependency != null) {
 						target.addDependency(trueDependency);
 					} else {
-						throw new DependencyNotFoundException("Target : " + target.getName() + " dep not found : " + weakDependency);
+						throw new DependencyNotFoundException("Target : " + target.getName() + "\nDependency not found : " + weakDependency);
 					}
 				}
 				target.cleanWeakDependencies();

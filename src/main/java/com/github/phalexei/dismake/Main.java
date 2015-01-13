@@ -1,6 +1,8 @@
 package com.github.phalexei.dismake;
 
 import com.github.phalexei.dismake.client.RmiClient;
+import com.github.phalexei.dismake.parser.Parser.DependencyNotFoundException;
+import com.github.phalexei.dismake.server.RmiServer;
 import com.github.phalexei.dismake.server.RmiServerImpl;
 
 public class Main {
@@ -17,6 +19,7 @@ public class Main {
                         return;
                     }
                     isServer = true;
+                    serverUrl = args[++i];
                     makeFile = args[++i];
                     break;
                 case "--client":
@@ -32,14 +35,18 @@ public class Main {
                     break;
             }
         }
-        if (isServer == null || !isServer && serverUrl == null) {
+        if (isServer == null || serverUrl == null) {
             error();
             return;
         }
 
         // TODO Start Server or Client
         if (isServer) {
-            RmiServerImpl.main(new String[]{makeFile});
+            try {
+                RmiServer server = new RmiServerImpl(serverUrl, makeFile);
+            } catch (DependencyNotFoundException e) {
+                e.printStackTrace();
+            }
         } else {
             RmiClient.main(new String[]{serverUrl});
         }
