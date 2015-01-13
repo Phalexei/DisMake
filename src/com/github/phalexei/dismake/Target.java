@@ -1,4 +1,5 @@
 package com.github.phalexei.dismake;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,7 @@ public class Target {
 
 	public Target(String command, String name, List<String> dependencies) {
 		this.name = name;
-		this.weakDependencies = dependencies;
+		this.weakDependencies = new ArrayList<>(dependencies);
 		this.command = command;
 		this.dependencies = new HashMap<>();
 	}

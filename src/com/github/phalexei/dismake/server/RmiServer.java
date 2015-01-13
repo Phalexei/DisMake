@@ -45,6 +45,7 @@ public class RmiServer extends UnicastRemoteObject implements RmiServerIntf {
 
         if (args.length > 0) {
             try {
+                //TODO: use return value
                 Parser.parse(args[0]);
             } catch (DependencyNotFoundException e) {
                 e.printStackTrace();

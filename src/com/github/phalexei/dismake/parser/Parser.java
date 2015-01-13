@@ -16,9 +16,11 @@ import java.util.*;
 
 public class Parser {
 
-	public static void parse(String fileName) throws IOException, DependencyNotFoundException {
+	public static Map<String, Target> parse(String fileName) throws IOException, DependencyNotFoundException {
 		Map<String, Target> targets = readTargets(fileName);
 		populateDependencies(targets);
+
+		return targets;
 	}
 
 	private static void populateDependencies(Map<String, Target> targets) throws DependencyNotFoundException {
@@ -50,7 +52,7 @@ public class Parser {
 
 		String currentLine;
 		for (int index = 0; index < fileContents.size(); index++) {
-			currentLine = fileContents.get(index).replaceAll("^\t", "");
+			currentLine = fileContents.get(index).replaceAll("\t", "");
 
 			if (!currentLine.isEmpty()) { // to verifiy if there's something to do
 				String words[] = currentLine.split(":");
@@ -61,7 +63,7 @@ public class Parser {
 				}
 
 				//read the command associated with the target
-				currentLine = fileContents.get(index++);
+				currentLine = fileContents.get(++index);
 				command = currentLine;
 
 				// add the things to the main list
