@@ -1,10 +1,8 @@
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 
 /*
  * Parser
@@ -13,89 +11,66 @@ import java.util.List;
  */
 
 public class Parser {
-	private String fileName;
-	private List<CatRoot> theliste;
-	
-	public Parser(String fileName) {
-		String tempcible;
-		List<CatRoot> dep = null;
-		String tempcommand = "";
 
-		this.fileName = fileName;
-		FileReader input = null;
-		try {
-			input = new FileReader(fileName);
-		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+	public static void parse(String fileName) throws IOException, DependencyNotFoundException {
+		Map<String, Target> targets = readTargets(fileName);
+		populateDependencies(targets);
+	}
+
+	private static void populateDependencies(Map<String, Target> targets) throws DependencyNotFoundException {
+		if (targets != null) {
+			List<String> weakDependencies;
+			Target trueDependency;
+			for (Target target : targets.values()) {
+				weakDependencies = target.getWeakDependencies();
+				for (String weakDependency : weakDependencies) {
+					trueDependency = targets.get(weakDependency);
+					if (trueDependency != null) {
+						target.addDependency(trueDependency);
+					} else {
+						throw new DependencyNotFoundException();
+					}
+				}
+				target.cleanWeakDependencies();
+			}
 		}
-		BufferedReader bufRead = new BufferedReader(input);
-		String myLine = null;
-		theliste = new ArrayList<CatRoot>();
+	}
 
-		try {
-			myLine = bufRead.readLine();
-			while (myLine != null) {
-				tempcommand = "";
-				dep = null;
-				if (!myLine.isEmpty()) {
-				// to verifiy if there's something to do
-					
-					String words[] = myLine.split(":");
-					tempcible = words[0];
+	private static Map<String, Target> readTargets(String fileName) throws IOException {
+		String target;
+		String command;
+		Map<String, Target> targets = new HashMap<>();
+		List<String> dependencies = new ArrayList<>();
 
-					
-					String[] thewords;
-					if (words.length > 1) {
-					// if there some dependances
-						thewords = words[1].split(" ");
-						dep = new ArrayList<CatRoot>();
-						for (String s : thewords) {
-							dep.add(new CatRoot(s));
-						}
+		List<String> fileContents = Files.readAllLines(Paths.get(fileName), StandardCharsets.UTF_8);
 
-					}
-					thewords = null;
-					try {
-						myLine = bufRead.readLine();
-						//read the command associated with the cible
-						tempcommand = myLine;
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+		int index = 0;
+		String currentLine = fileContents.get(index++);
 
-					// add the things to the main list
-					// for now dep has just a name, it's incomplete
-					theliste.add(new CatRoot(new String(tempcommand),
-							new String(tempcible), dep));
+		while (currentLine != null) {
+			if (!currentLine.isEmpty()) { // to verifiy if there's something to do
+				String words[] = currentLine.split(":");
+				target = words[0];
+
+				if (words.length > 1) { // if there are some dependencies
+					Collections.addAll(dependencies, words[1].split(" "));
 				}
 
-				// next line
-				myLine = bufRead.readLine();
+				//read the command associated with the target
+				currentLine = fileContents.get(index++);
+				command = currentLine;
+
+				// add the things to the main list
+				// for now dep has just a name, it's incomplete
+				targets.put(target, new Target(command, target, dependencies));
 			}
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// advance to next line
+			currentLine = fileContents.get(index++);
 		}
 
-		
-		//TODO
-		// we have to link the dep with the real cible daclarated later
-		//so we have to check all the dep of all cible and set the real dep
-		// from the real "theliste"
+		return targets;
 	}
 
-	@Override
-	public String toString() {
-		String sortie = "";
-		for (CatRoot c : theliste) {
-
-			sortie = sortie + c.toString();
-		}
-		return sortie;
-
+	private static class DependencyNotFoundException extends Throwable {
 	}
-
 }
