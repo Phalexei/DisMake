@@ -1,3 +1,5 @@
+package com.github.phalexei.dismake.server;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 

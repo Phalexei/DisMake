@@ -1,3 +1,7 @@
+package com.github.phalexei.dismake.client;
+
+import com.github.phalexei.dismake.server.RmiServerIntf;
+
 import java.rmi.Naming;
 
 /*

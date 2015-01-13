@@ -1,3 +1,7 @@
+package com.github.phalexei.dismake.parser;
+
+import com.github.phalexei.dismake.Target;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -28,7 +32,7 @@ public class Parser {
 					if (trueDependency != null) {
 						target.addDependency(trueDependency);
 					} else {
-						throw new DependencyNotFoundException();
+						throw new DependencyNotFoundException("Target : " + target.getName() + " dep not found : " + weakDependency);
 					}
 				}
 				target.cleanWeakDependencies();
@@ -44,10 +48,10 @@ public class Parser {
 
 		List<String> fileContents = Files.readAllLines(Paths.get(fileName), StandardCharsets.UTF_8);
 
-		int index = 0;
-		String currentLine = fileContents.get(index++);
+		String currentLine;
+		for (int index = 0; index < fileContents.size(); index++) {
+			currentLine = fileContents.get(index).replaceAll("^\t", "");
 
-		while (currentLine != null) {
 			if (!currentLine.isEmpty()) { // to verifiy if there's something to do
 				String words[] = currentLine.split(":");
 				target = words[0];
@@ -63,14 +67,16 @@ public class Parser {
 				// add the things to the main list
 				// for now dep has just a name, it's incomplete
 				targets.put(target, new Target(command, target, dependencies));
+				dependencies.clear();
 			}
-			// advance to next line
-			currentLine = fileContents.get(index++);
 		}
 
 		return targets;
 	}
 
-	private static class DependencyNotFoundException extends Throwable {
+	public static class DependencyNotFoundException extends Throwable {
+		public DependencyNotFoundException(String s) {
+			super(s);
+		}
 	}
 }

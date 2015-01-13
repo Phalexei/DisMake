@@ -1,3 +1,8 @@
+package com.github.phalexei.dismake.server;
+
+import com.github.phalexei.dismake.parser.Parser;
+import com.github.phalexei.dismake.parser.Parser.DependencyNotFoundException;
+
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -37,5 +42,13 @@ public class RmiServer extends UnicastRemoteObject implements RmiServerIntf {
         // Bind this object instance to the name "RmiServer"
         Naming.rebind("//localhost/RmiServer", obj);
         System.out.println("PeerServer bound in registry");
+
+        if (args.length > 0) {
+            try {
+                Parser.parse(args[0]);
+            } catch (DependencyNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
