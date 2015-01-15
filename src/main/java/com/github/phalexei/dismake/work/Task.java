@@ -5,7 +5,7 @@ import com.github.phalexei.dismake.Target;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * A task
@@ -23,13 +23,13 @@ public class Task implements Serializable {
         this.files = null;
     }
 
-    public Task(Target target, Path... files) throws IOException {
+    public Task(Target target) throws IOException {
         this.type = TaskType.WORK;
         this.target = target;
-        this.files = new byte[files.length][];
+        this.files = new byte[target.getDependencies().size()][];
         int i = 0;
-        for (Path path : files) {
-            this.files[i++] = Files.readAllBytes(path);
+        for (Target t : target.getDependencies().values()) {
+            this.files[i++] = Files.readAllBytes(Paths.get(t.getName()));
         }
     }
 
@@ -39,5 +39,9 @@ public class Task implements Serializable {
 
     public TaskType getType() {
         return this.type;
+    }
+
+    public byte[][] getFiles() {
+        return files;
     }
 }

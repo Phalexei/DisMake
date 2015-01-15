@@ -79,4 +79,8 @@ public class Target implements Serializable {
 	public boolean equals(Object o) {
 		return o instanceof Target && ((Target) o).name.equals(this.name);
 	}
+
+	public String getCommand() {
+		return command;
+	}
 }

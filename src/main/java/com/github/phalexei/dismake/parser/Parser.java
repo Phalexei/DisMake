@@ -2,6 +2,7 @@ package com.github.phalexei.dismake.parser;
 
 import com.github.phalexei.dismake.Target;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -34,7 +35,20 @@ public class Parser {
 					if (trueDependency != null) {
 						target.addDependency(trueDependency);
 					} else {
-						throw new DependencyNotFoundException("Target : " + target.getName() + "\nDependency not found : " + weakDependency);
+						// dependency might be a file in current dir, search for it
+						File folder = new File(".");
+						boolean found = false;
+						for (File f : folder.listFiles()) {
+							if (f.isFile() && f.getName().equals(weakDependency)) {
+								List<String> dependencies = new ArrayList<>();
+								dependencies.add(f.getName());
+								target.addDependency(new Target("", weakDependency, dependencies));
+								found = true;
+							}
+						}
+						if (!found) {
+							throw new DependencyNotFoundException("Target : " + target.getName() + "\nDependency not found : " + weakDependency);
+						}
 					}
 				}
 				target.cleanWeakDependencies();

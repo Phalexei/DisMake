@@ -37,7 +37,17 @@ public class RmiClient {
     private Result work(Task myTask) {
         Result result = null;
 
+        for (byte[] file : myTask.getFiles()) {
+            System.out.println("file : ");
+            System.out.println(file);
+        }
         //TODO run the command and gather output files
+        try {
+            Runtime.getRuntime().exec(myTask.getTarget().getCommand());
+        } catch (IOException e) {
+            //TODO
+            e.printStackTrace();
+        }
 
         try {
             result = new Result(myTask);
