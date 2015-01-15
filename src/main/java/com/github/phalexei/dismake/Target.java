@@ -16,13 +16,15 @@ public class Target implements Serializable {
 	private List<String> weakDependencies;
 	private String command;
 	private int dependenciesCounter;
+	private boolean file;
 
-	public Target(String command, String name, List<String> dependencies) {
+	public Target(String command, String name, List<String> dependencies, boolean file) {
 		this.name = name;
 		this.weakDependencies = new ArrayList<>(dependencies);
-		this.dependenciesCounter = dependencies.size();
+		this.dependenciesCounter = 0;
 		this.command = command;
 		this.dependencies = new HashMap<>();
+		this.file = file;
 	}
 
 
@@ -38,12 +40,15 @@ public class Target implements Serializable {
 		return weakDependencies;
 	}
 
-	public void addDependency(Target dependency) {
-		dependencies.put(dependency.name, dependency);
-	}
-
 	public void cleanWeakDependencies() {
 		weakDependencies.clear();
+	}
+
+	public void addDependency(Target dependency, boolean file) {
+		dependencies.put(dependency.name, dependency);
+		if (!file) {
+			this.dependenciesCounter++;
+		}
 	}
 
 	public Map<String, Target> getDependencies() {
@@ -82,5 +87,9 @@ public class Target implements Serializable {
 
 	public String getCommand() {
 		return command;
+	}
+
+	public boolean isFile() {
+		return this.file;
 	}
 }

@@ -7,18 +7,18 @@ import java.nio.file.Path;
 
 public class Result implements Serializable {
     private final String taskName;
-    private final byte[][] files;
+    private final byte[] file;
 
-    public Result(Task task, Path... files) throws IOException {
+    public Result(Task task, Path file) throws IOException {
         taskName = task.getTarget().getName();
-        this.files = new byte[files.length][];
-        int i = 0;
-        for (Path path : files) {
-            this.files[i++] = Files.readAllBytes(path);
-        }
+        this.file = Files.readAllBytes(file);
     }
 
     public String getTaskName() {
         return this.taskName;
+    }
+
+    public byte[] getFile() {
+        return file;
     }
 }

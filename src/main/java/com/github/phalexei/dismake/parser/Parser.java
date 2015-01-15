@@ -33,7 +33,7 @@ public class Parser {
 				for (String weakDependency : weakDependencies) {
 					trueDependency = targets.get(weakDependency);
 					if (trueDependency != null) {
-						target.addDependency(trueDependency);
+						target.addDependency(trueDependency, false);
 					} else {
 						// dependency might be a file in current dir, search for it
 						File folder = new File(".");
@@ -42,7 +42,7 @@ public class Parser {
 							if (f.isFile() && f.getName().equals(weakDependency)) {
 								List<String> dependencies = new ArrayList<>();
 								dependencies.add(f.getName());
-								target.addDependency(new Target("", weakDependency, dependencies));
+								target.addDependency(new Target("", weakDependency, dependencies, true), true);
 								found = true;
 							}
 						}
@@ -82,7 +82,7 @@ public class Parser {
 
 				// add the things to the main list
 				// for now dep has just a name, it's incomplete
-				targets.put(target, new Target(command, target, dependencies));
+				targets.put(target, new Target(command, target, dependencies, false));
 				dependencies.clear();
 			}
 		}

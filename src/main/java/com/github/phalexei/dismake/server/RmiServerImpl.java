@@ -7,6 +7,7 @@ import com.github.phalexei.dismake.work.Result;
 import com.github.phalexei.dismake.work.Task;
 import com.github.phalexei.dismake.work.TaskType;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
@@ -42,7 +43,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
         lockedTasks = new HashMap<>();
         tasks = new ConcurrentLinkedQueue<>();
         for (Target t : map.values()) {
-            if (t.getDependencies().size() > 0) {
+            if (!t.available()) {
                 lockedTasks.put(t.getName(), t);
             } else {
                 tasks.add(new Task(t));
@@ -79,6 +80,15 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                     System.out.println("task available : " + t.getName());
                 }
             }
+        }
+
+        try {
+            FileOutputStream fos = new FileOutputStream(taskName);
+            fos.write(result.getFile());
+            fos.close();
+        } catch (IOException e) {
+            //TODO
+            e.printStackTrace();
         }
     }
 }

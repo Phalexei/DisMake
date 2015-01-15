@@ -7,6 +7,7 @@ import com.github.phalexei.dismake.work.TaskType;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.file.Paths;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -44,13 +45,7 @@ public class RmiClient {
         //TODO run the command and gather output files
         try {
             Runtime.getRuntime().exec(myTask.getTarget().getCommand());
-        } catch (IOException e) {
-            //TODO
-            e.printStackTrace();
-        }
-
-        try {
-            result = new Result(myTask);
+            result = new Result(myTask, Paths.get(myTask.getTarget().getName()));
         } catch (IOException e) {
             //TODO
             e.printStackTrace();
