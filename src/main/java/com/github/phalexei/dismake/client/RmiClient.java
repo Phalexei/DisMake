@@ -42,6 +42,7 @@ public class RmiClient {
         try {
             result = new Result(myTask);
         } catch (IOException e) {
+            //TODO
             e.printStackTrace();
         }
 

@@ -71,7 +71,9 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                 if (t.available()) {
                     try {
                         tasks.add(new Task(t));
+                        lockedTasks.remove(t.getName());
                     } catch (IOException e) {
+                        //TODO
                         e.printStackTrace();
                     }
                     System.out.println("task available : " + t.getName());
