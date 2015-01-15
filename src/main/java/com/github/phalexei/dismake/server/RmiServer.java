@@ -1,5 +1,6 @@
 package com.github.phalexei.dismake.server;
 
+import com.github.phalexei.dismake.work.Result;
 import com.github.phalexei.dismake.work.Task;
 
 import java.rmi.Remote;
@@ -31,5 +32,5 @@ public interface RmiServer extends Remote {
      *                 that was just finished
      * @throws RemoteException
      */
-    void sendResults(Task doneTask) throws RemoteException;
+    void sendResults(Result doneTask) throws RemoteException;
 }

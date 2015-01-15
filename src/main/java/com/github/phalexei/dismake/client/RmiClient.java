@@ -1,32 +1,43 @@
 package com.github.phalexei.dismake.client;
 
 import com.github.phalexei.dismake.server.RmiServer;
+import com.github.phalexei.dismake.work.Result;
 import com.github.phalexei.dismake.work.Task;
+import com.github.phalexei.dismake.work.TaskType;
 
+import java.net.MalformedURLException;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 
-/*
- * Simple client asking server for 10 messages
- */
 public class RmiClient {
-    public static void main(String args[]) throws Exception {
-        RmiServer obj = (RmiServer)Naming.lookup("//localhost/RmiServer");
+    private final RmiServer server;
+    private boolean work;
+    public RmiClient(String serverUrl) throws RemoteException, NotBoundException, MalformedURLException {
+        this.server = (RmiServer)Naming.lookup("//"+serverUrl+"/RmiServer");
+        this.work = true;
+    }
 
+    public void mainLoop() throws RemoteException {
         Task myTask;
-        while (true) { //TODO: end condition
-            myTask = obj.getTask();
+        Result taskResult;
+        while (work) {
+            myTask = server.getTask();
 
-            if (myTask != null) {
-                work(myTask);
-                obj.sendResults(myTask);
-            } else { // no work for now
-                System.out.println("no work, idling");
-                Thread.sleep(5000);
+            if (myTask.getType() == TaskType.NO_MORE_WORK) {
+                work = false;
+            } else if (myTask.getType() == TaskType.WAIT) {
+                //TODO
+            } else {
+                server.sendResults(work(myTask));
             }
         }
     }
 
-    private static void work(Task myTask) {
+    private Result work(Task myTask) {
         //TODO
+        Result result = new Result(myTask);
+
+        return result;
     }
 }

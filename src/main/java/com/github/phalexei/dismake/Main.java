@@ -48,7 +48,8 @@ public class Main {
                 e.printStackTrace();
             }
         } else {
-            RmiClient.main(new String[]{serverUrl});
+            RmiClient client = new RmiClient(serverUrl);
+            client.mainLoop();
         }
     }
 

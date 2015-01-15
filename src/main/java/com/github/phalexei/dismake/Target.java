@@ -25,6 +25,43 @@ public class Target implements Serializable {
 		this.dependencies = new HashMap<>();
 	}
 
+
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @return the list of weak (not yet verified) dependencies of a
+	 * {@link com.github.phalexei.dismake.Target}
+	 */
+	public List<String> getWeakDependencies() {
+		return weakDependencies;
+	}
+
+	public void addDependency(Target dependency) {
+		dependencies.put(dependency.name, dependency);
+	}
+
+	public void cleanWeakDependencies() {
+		weakDependencies.clear();
+	}
+
+	public Map<String, Target> getDependencies() {
+		return dependencies;
+	}
+
+	public void resolveOneDependency() {
+		dependenciesCounter--;
+	}
+
+	/**
+	 * @return true if this Target is ready (i.e. all its dependencies are
+	 * resolved)
+	 */
+	public boolean available() {
+		return dependenciesCounter == 0;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
@@ -41,33 +78,5 @@ public class Target implements Serializable {
 	@Override
 	public boolean equals(Object o) {
 		return o instanceof Target && ((Target) o).name.equals(this.name);
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public List<String> getWeakDependencies() {
-		return weakDependencies;
-	}
-
-	public void addDependency(Target trueDependency) {
-		dependencies.put(trueDependency.name, trueDependency);
-	}
-
-	public void cleanWeakDependencies() {
-		weakDependencies.clear();
-	}
-
-	public Map<String, Target> getDependencies() {
-		return dependencies;
-	}
-
-	public void resolveOneDependency() {
-		dependenciesCounter--;
-	}
-
-	public boolean available() {
-		return dependenciesCounter == 0;
 	}
 }

@@ -3,7 +3,9 @@ package com.github.phalexei.dismake.server;
 import com.github.phalexei.dismake.Target;
 import com.github.phalexei.dismake.parser.Parser;
 import com.github.phalexei.dismake.parser.Parser.DependencyNotFoundException;
+import com.github.phalexei.dismake.work.Result;
 import com.github.phalexei.dismake.work.Task;
+import com.github.phalexei.dismake.work.TaskType;
 
 import java.io.IOException;
 import java.rmi.Naming;
@@ -15,11 +17,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-/**
- * RmiServer
- *
- * Basic implentation of a server
- */
 public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
     private final Queue<Task> tasks;
     private final Map<String, Target> lockedTasks;
@@ -55,18 +52,28 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
 
     @Override
     public Task getTask() throws RemoteException {
-        return tasks.poll();
+        if (tasks.size() > 0) {
+            return tasks.poll();
+        } else if (lockedTasks.size() > 0) {
+            return new Task(TaskType.WAIT);
+        } else {
+            return new Task(TaskType.NO_MORE_WORK);
+        }
     }
 
     @Override
-    public void sendResults(Task doneTask) throws RemoteException {
-        System.out.println("task done : " + doneTask.getTarget().getName());
-        final String taskName = doneTask.getTarget().getName();
+    public void sendResults(Result result) throws RemoteException {
+        System.out.println("task done : " + result.getTaskName());
+        final String taskName = result.getTaskName();
         for (Target t : lockedTasks.values()) {
             if (t.getDependencies().containsKey(taskName)) {
                 t.resolveOneDependency();
                 if (t.available()) {
-                    tasks.add(new Task(t));
+                    try {
+                        tasks.add(new Task(t));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     System.out.println("task available : " + t.getName());
                 }
             }
