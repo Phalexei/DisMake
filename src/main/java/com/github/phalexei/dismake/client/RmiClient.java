@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.Arrays;
 
 public class RmiClient {
     private final RmiServer server;
@@ -47,8 +48,13 @@ public class RmiClient {
         }
         //TODO run the command and gather output files
         try {
-            String s = null;
-            Process p = Runtime.getRuntime().exec(myTask.getTarget().getCommand());
+            String[] cmd = new String[]{
+                    "/bin/sh",
+                    "-c",
+                    myTask.getTarget().getCommand()
+            };
+            System.out.println("Executing " + Arrays.toString(cmd));
+            Process p = Runtime.getRuntime().exec(cmd);
 
             BufferedReader stdInput = new BufferedReader(new
                     InputStreamReader(p.getInputStream()));
@@ -57,6 +63,7 @@ public class RmiClient {
                     InputStreamReader(p.getErrorStream()));
 
             // read the output from the command
+            String s;
             System.out.println("Here is the standard output of the command:\n");
             while ((s = stdInput.readLine()) != null) {
                 System.out.println(s);

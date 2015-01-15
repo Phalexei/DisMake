@@ -78,6 +78,7 @@ public class Parser {
 
 				//read the command associated with the target
 				currentLine = fileContents.get(++index);
+				currentLine = fileContents.get(index).replaceAll("\t", "");
 				command = currentLine;
 
 				// add the things to the main list
