@@ -40,6 +40,7 @@ public class RmiClient {
     private Result work(Task myTask) {
         Result result = null;
 
+        //TODO: write files to disk ?
         for (byte[] file : myTask.getFiles()) {
             System.out.println("file : ");
             System.out.println(file);
