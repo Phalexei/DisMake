@@ -13,9 +13,9 @@ import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
@@ -40,7 +40,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
 
         Map<String, Target> map = Parser.parse(fileName);
 
-        lockedTasks = new HashMap<>();
+        lockedTasks = new ConcurrentHashMap<>();
         tasks = new ConcurrentLinkedQueue<>();
         for (Target t : map.values()) {
             if (!t.available()) {

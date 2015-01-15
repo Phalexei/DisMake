@@ -5,7 +5,9 @@ import com.github.phalexei.dismake.work.Result;
 import com.github.phalexei.dismake.work.Task;
 import com.github.phalexei.dismake.work.TaskType;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.nio.file.Paths;
 import java.rmi.Naming;
@@ -44,7 +46,27 @@ public class RmiClient {
         }
         //TODO run the command and gather output files
         try {
-            Runtime.getRuntime().exec(myTask.getTarget().getCommand());
+            String s = null;
+            Process p = Runtime.getRuntime().exec(myTask.getTarget().getCommand());
+
+            BufferedReader stdInput = new BufferedReader(new
+                    InputStreamReader(p.getInputStream()));
+
+            BufferedReader stdError = new BufferedReader(new
+                    InputStreamReader(p.getErrorStream()));
+
+            // read the output from the command
+            System.out.println("Here is the standard output of the command:\n");
+            while ((s = stdInput.readLine()) != null) {
+                System.out.println(s);
+            }
+
+            // read any errors from the attempted command
+            System.out.println("Here is the standard error of the command (if any):\n");
+            while ((s = stdError.readLine()) != null) {
+                System.out.println(s);
+            }
+
             result = new Result(myTask, Paths.get(myTask.getTarget().getName()));
         } catch (IOException e) {
             //TODO
