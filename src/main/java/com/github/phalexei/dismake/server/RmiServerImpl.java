@@ -64,8 +64,22 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
 
     @Override
     public void sendResults(Result result) throws RemoteException {
-        System.out.println("task done : " + result.getTaskName());
-        final String taskName = result.getTaskName();
+        if (result.getExitCode() == 0) { // exit code for "success"
+            onTaskSuccess(result.getTaskName(), result.getFile());
+        } else { // failure during build
+            onTaskFailure(result.getTaskName(), result.getExitCode(), result.getStdErr());
+        }
+    }
+
+    private void onTaskFailure(String taskName, int exitCode, String stdErr) {
+        //TODO: stop the whole process and display error properly
+        System.out.println(taskName + " failed with error code: " + exitCode);
+        System.out.println("More information:");
+        System.out.println(stdErr);
+        System.exit(42);
+    }
+
+    private void onTaskSuccess(String taskName, byte[] file) {
         for (Target t : lockedTasks.values()) {
             if (t.getDependencies().containsKey(taskName)) {
                 t.resolveOneDependency();
@@ -83,8 +97,9 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
         }
 
         try {
+            // TODO: write file, or assume we're using imag's file system so file should already be present ?
             FileOutputStream fos = new FileOutputStream(taskName);
-            fos.write(result.getFile());
+            fos.write(file);
             fos.close();
         } catch (IOException e) {
             //TODO

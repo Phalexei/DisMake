@@ -9,7 +9,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
-import java.nio.file.Paths;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -46,7 +45,6 @@ public class RmiClient {
             System.out.println("file : ");
             System.out.println(file);
         }
-        //TODO run the command and gather output files
         try {
             String[] cmd = new String[]{
                     "/bin/sh",
@@ -62,20 +60,20 @@ public class RmiClient {
             BufferedReader stdError = new BufferedReader(new
                     InputStreamReader(p.getErrorStream()));
 
-            // read the output from the command
             String s;
-            System.out.println("Here is the standard output of the command:\n");
+            // read the output from the command
+            String stdOut = "";
             while ((s = stdInput.readLine()) != null) {
-                System.out.println(s);
+                stdOut += s;
             }
 
             // read any errors from the attempted command
-            System.out.println("Here is the standard error of the command (if any):\n");
+            String stdErr = "";
             while ((s = stdError.readLine()) != null) {
-                System.out.println(s);
+                stdErr += s;
             }
 
-            result = new Result(myTask, Paths.get(myTask.getTarget().getName()));
+            result = new Result(myTask, stdOut, stdErr, p.exitValue());
         } catch (IOException e) {
             //TODO
             e.printStackTrace();
