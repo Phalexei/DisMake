@@ -1,5 +1,6 @@
 package com.github.phalexei.dismake.parser;
 
+import com.github.phalexei.dismake.Main;
 import com.github.phalexei.dismake.Target;
 
 import java.io.File;
@@ -16,6 +17,12 @@ import java.util.*;
  */
 
 public class Parser {
+
+	public static class DependencyNotFoundException extends Throwable {
+		public DependencyNotFoundException(String s) {
+			super(s);
+		}
+	}
 
 	public static Map<String, Target> parse(String fileName) throws IOException, DependencyNotFoundException {
 		Map<String, Target> targets = readTargets(fileName);
@@ -42,7 +49,7 @@ public class Parser {
 							if (f.isFile() && f.getName().equals(weakDependency)) {
 								List<String> dependencies = new ArrayList<>();
 								dependencies.add(f.getName());
-								target.addDependency(new Target("", weakDependency, dependencies, true), true);
+								target.addDependency(new Target("", weakDependency, dependencies), true);
 								found = true;
 							}
 						}
@@ -65,11 +72,16 @@ public class Parser {
 		List<String> fileContents = Files.readAllLines(Paths.get(fileName), StandardCharsets.UTF_8);
 
 		String currentLine;
+		boolean firstTarget = true;
+
 		for (int index = 0; index < fileContents.size(); index++) {
 			currentLine = fileContents.get(index).replaceAll("\t", "");
 
-			if (!currentLine.isEmpty()) { // to verifiy if there's something to do
+			if (!currentLine.isEmpty() && !currentLine.startsWith("#")) { // to verifiy if there's something to do
 				String words[] = currentLine.split(":");
+				for (int i = 0; i < words.length; i++) {
+					words[i] = words[i].trim();
+				}
 				target = words[0];
 
 				if (words.length > 1) { // if there are some dependencies
@@ -77,23 +89,20 @@ public class Parser {
 				}
 
 				//read the command associated with the target
-				currentLine = fileContents.get(++index);
-				currentLine = fileContents.get(index).replaceAll("\t", "");
+				currentLine = fileContents.get(++index).replaceAll("\t", "");
 				command = currentLine;
 
 				// add the things to the main list
 				// for now dep has just a name, it's incomplete
-				targets.put(target, new Target(command, target, dependencies, false));
+				targets.put(target, new Target(command, target, dependencies));
+				if (firstTarget && !target.startsWith(".")) {
+					firstTarget = false;
+					targets.put(Main.FIRST, targets.get(target));
+				}
 				dependencies.clear();
 			}
 		}
 
 		return targets;
-	}
-
-	public static class DependencyNotFoundException extends Throwable {
-		public DependencyNotFoundException(String s) {
-			super(s);
-		}
 	}
 }

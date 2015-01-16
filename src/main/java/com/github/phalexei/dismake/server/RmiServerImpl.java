@@ -1,5 +1,6 @@
 package com.github.phalexei.dismake.server;
 
+import com.github.phalexei.dismake.Main;
 import com.github.phalexei.dismake.Target;
 import com.github.phalexei.dismake.parser.Parser;
 import com.github.phalexei.dismake.parser.Parser.DependencyNotFoundException;
@@ -18,11 +19,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
+
+    public static class MainTargetNotFoundException extends Throwable {
+        public MainTargetNotFoundException(String s) {
+            super(s);
+        }
+    }
+
     private final Queue<Task> tasks;
     private final Map<String, Target> lockedTasks;
     private final Object hangingClients;
 
-    public RmiServerImpl(String url, String fileName) throws IOException, DependencyNotFoundException {
+    public RmiServerImpl(String url, String fileName, String theTarget) throws IOException, DependencyNotFoundException, MainTargetNotFoundException {
         super(0);    // required to avoid the 'rmic' step
         System.out.println("RMI server started on " + url);
 
@@ -34,46 +42,59 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
             System.out.println("java RMI registry already exists.");
         }
 
+        Map<String, Target> map = Parser.parse(fileName);
+
+        Target mainTarget;
+        if (theTarget != null) {
+            mainTarget = map.get(theTarget);
+        } else {
+            mainTarget = map.get(Main.FIRST);
+        }
+
+        if (mainTarget != null) {
+            lockedTasks = new ConcurrentHashMap<>();
+            tasks = new ConcurrentLinkedQueue<>();
+            for (Target t : map.values()) {
+                if (mainTarget.dependsOn(t.getName())) {
+                    if (!t.available()) {
+                        lockedTasks.put(t.getName(), t);
+                    } else {
+                        tasks.add(new Task(t));
+                    }
+                }
+            }
+            hangingClients = new Object();
+        } else {
+            throw new MainTargetNotFoundException("Target : " + theTarget +
+                    "not found in " + fileName);
+        }
+
         // Bind this object instance to the name "RmiServer"
         Naming.rebind("//" + url + "/RmiServer", this);
         System.out.println("PeerServer bound in registry");
-
-        Map<String, Target> map = Parser.parse(fileName);
-
-        lockedTasks = new ConcurrentHashMap<>();
-        tasks = new ConcurrentLinkedQueue<>();
-        for (Target t : map.values()) {
-            if (!t.available()) {
-                lockedTasks.put(t.getName(), t);
-            } else {
-                tasks.add(new Task(t));
-            }
-        }
-        hangingClients = new Object();
     }
 
     @Override
-    public synchronized Task getTask() throws RemoteException {
+    public Task getTask() throws RemoteException {
         if (tasks.size() > 0) {
             return tasks.poll();
-        } else if (lockedTasks.size() > 0) {
+        } else if (lockedTasks.size() > 0) { // no task available right now, but in the future there will be
             synchronized (hangingClients) {
                 try {
                     hangingClients.wait();
                 } catch (InterruptedException e) {
-                    //TODO
+                    //TODO exception handling
                     e.printStackTrace();
                 }
             }
-
             return tasks.size() > 0 ? tasks.poll() : null;
-        } else {
+        } else { // nothing more to do
             return null;
         }
     }
 
     @Override
-    public synchronized void sendResults(Result result) throws RemoteException {
+    public void sendResults(Result result) throws RemoteException {
         if (result.getExitCode() == 0) { // exit code for "success"
             onTaskSuccess(result.getTaskName(), result.getFile());
         } else { // failure during build
@@ -90,34 +111,37 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
     }
 
     private void onTaskSuccess(String taskName, byte[] file) {
-        for (Target t : lockedTasks.values()) {
-            if (t.getDependencies().containsKey(taskName)) {
-                t.resolveOneDependency();
-                if (t.available()) {
-                    try {
-                        tasks.add(new Task(t));
-                        lockedTasks.remove(t.getName());
-                        hangingClients.notify();
-                    } catch (IOException e) {
-                        //TODO
-                        e.printStackTrace();
+        synchronized (hangingClients) {
+            for (Target t : lockedTasks.values()) {
+                if (t.getDependencies().containsKey(taskName)) {
+                    t.resolveOneDependency();
+                    if (t.available()) {
+                        try {
+                            tasks.add(new Task(t));
+                            lockedTasks.remove(t.getName());
+                            hangingClients.notify();
+                        } catch (IOException e) {
+                            //TODO exception handling
+                            e.printStackTrace();
+                        }
                     }
-                    System.out.println("task available : " + t.getName());
                 }
+            }
+
+            if (tasks.size() == 0 && lockedTasks.size() == 0) { // no more tasks, wake every hanging process
+                hangingClients.notifyAll();
+                System.out.println("DisMake terminated successfully :-)");
+                System.out.println("Server shutting down.");
+                System.exit(0);
             }
         }
 
-        if (tasks.size() == 0 && lockedTasks.size() == 0) { // no more tasks, wake every hanging process
-            hangingClients.notifyAll();
-        }
-
         try {
-            // TODO: write file, or assume we're using imag's file system so file should already be present ?
             FileOutputStream fos = new FileOutputStream(taskName);
             fos.write(file);
             fos.close();
         } catch (IOException e) {
-            //TODO
+            //TODO exception handling
             e.printStackTrace();
         }
     }

@@ -3,6 +3,7 @@ package com.github.phalexei.dismake.work;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Result implements Serializable {
@@ -14,7 +15,12 @@ public class Result implements Serializable {
 
     public Result(Task task, String stdOut, String stdErr, int exitCode) throws IOException {
         taskName = task.getTarget().getName();
-        this.file = Files.readAllBytes(Paths.get(taskName));
+        Path path = Paths.get(taskName);
+        if (path != null && Files.exists(path)) {
+            this.file = Files.readAllBytes(path);
+        } else {
+            this.file = null;
+        }
 
         this.stdOut = stdOut;
         this.stdErr = stdErr;

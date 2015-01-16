@@ -13,6 +13,9 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Arrays;
 
+/**
+ * //TODO doc
+ */
 public class RmiClient {
     private final RmiServer server;
     public RmiClient(String serverUrl) throws RemoteException, NotBoundException, MalformedURLException {
@@ -20,20 +23,26 @@ public class RmiClient {
     }
 
     public void mainLoop() throws RemoteException {
-        Task myTask;
-        boolean work = true;
-        while (work) {
-            myTask = server.getTask();
+        try {
+            Task myTask;
+            boolean work = true;
+            while (work) {
+                myTask = server.getTask();
 
-            if (myTask != null) {
-                try {
-                    server.sendResults(work(myTask));
-                } catch (InterruptedException e) {
+                if (myTask != null) {
+                    try {
+                        server.sendResults(work(myTask));
+                    } catch (InterruptedException e) {
+                        work = false;
+                    }
+                } else {
                     work = false;
                 }
-            } else {
-                work = false;
             }
+        } catch (RemoteException ignored) {
+            // somethin happened to the server, client should die silently
+        } finally {
+            System.out.println("Client exiting.");
         }
     }
 
@@ -49,7 +58,7 @@ public class RmiClient {
             String[] cmd = new String[]{
                     "/bin/sh",
                     "-c",
-                    "PATH=$PATH:. " + myTask.getTarget().getCommand()
+                    "PATH=.:$PATH " + myTask.getTarget().getCommand()
             };
             System.out.println("Executing " + Arrays.toString(cmd));
             Process p = Runtime.getRuntime().exec(cmd);
@@ -76,7 +85,7 @@ public class RmiClient {
             p.waitFor();
             result = new Result(myTask, stdOut, stdErr, p.exitValue());
         } catch (IOException e) {
-            //TODO
+            //TODO exception handling
             e.printStackTrace();
         }
 

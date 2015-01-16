@@ -12,11 +12,11 @@ echo `pwd`
 java -jar $CURPATH/target/DisMake.jar --server $HOST $FILE &
 
 pid=$!
-for line in $(cat /user/4/.base/pacaletx/home/DisMake/clients.txt); 
+for line in $(cat $CURPATH/clients.txt); 
 do 
 #echo "$line" ;
 ssh $line "
   cd $CURPATH/$DIR
-java -jar ~/DisMake/target/DisMake.jar --client $HOST
+java -jar $CURPATH/target/DisMake.jar --client $HOST
 " &
 done
