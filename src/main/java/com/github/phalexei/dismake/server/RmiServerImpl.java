@@ -5,7 +5,6 @@ import com.github.phalexei.dismake.parser.Parser;
 import com.github.phalexei.dismake.parser.Parser.DependencyNotFoundException;
 import com.github.phalexei.dismake.work.Result;
 import com.github.phalexei.dismake.work.Task;
-import com.github.phalexei.dismake.work.TaskType;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -21,6 +20,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
     private final Queue<Task> tasks;
     private final Map<String, Target> lockedTasks;
+    private final Object hangingClients;
 
     public RmiServerImpl(String url, String fileName) throws IOException, DependencyNotFoundException {
         super(0);    // required to avoid the 'rmic' step
@@ -49,21 +49,31 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                 tasks.add(new Task(t));
             }
         }
+        hangingClients = new Object();
     }
 
     @Override
-    public Task getTask() throws RemoteException {
+    public synchronized Task getTask() throws RemoteException {
         if (tasks.size() > 0) {
             return tasks.poll();
         } else if (lockedTasks.size() > 0) {
-            return new Task(TaskType.WAIT);
+            synchronized (hangingClients) {
+                try {
+                    hangingClients.wait();
+                } catch (InterruptedException e) {
+                    //TODO
+                    e.printStackTrace();
+                }
+            }
+
+            return tasks.size() > 0 ? tasks.poll() : null;
         } else {
-            return new Task(TaskType.NO_MORE_WORK);
+            return null;
         }
     }
 
     @Override
-    public void sendResults(Result result) throws RemoteException {
+    public synchronized void sendResults(Result result) throws RemoteException {
         if (result.getExitCode() == 0) { // exit code for "success"
             onTaskSuccess(result.getTaskName(), result.getFile());
         } else { // failure during build
@@ -72,11 +82,11 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
     }
 
     private void onTaskFailure(String taskName, int exitCode, String stdErr) {
-        //TODO: stop the whole process and display error properly
+        //TODO: stop the whole process (maybe ?) and display error properly
         System.out.println(taskName + " failed with error code: " + exitCode);
         System.out.println("More information:");
         System.out.println(stdErr);
-        System.exit(42);
+        System.exit(exitCode);
     }
 
     private void onTaskSuccess(String taskName, byte[] file) {
@@ -87,6 +97,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                     try {
                         tasks.add(new Task(t));
                         lockedTasks.remove(t.getName());
+                        hangingClients.notify();
                     } catch (IOException e) {
                         //TODO
                         e.printStackTrace();
@@ -94,6 +105,10 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                     System.out.println("task available : " + t.getName());
                 }
             }
+        }
+
+        if (tasks.size() == 0 && lockedTasks.size() == 0) { // no more tasks, wake every hanging process
+            hangingClients.notifyAll();
         }
 
         try {

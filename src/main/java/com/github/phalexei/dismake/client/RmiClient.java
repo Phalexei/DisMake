@@ -3,7 +3,6 @@ package com.github.phalexei.dismake.client;
 import com.github.phalexei.dismake.server.RmiServer;
 import com.github.phalexei.dismake.work.Result;
 import com.github.phalexei.dismake.work.Task;
-import com.github.phalexei.dismake.work.TaskType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,28 +15,29 @@ import java.util.Arrays;
 
 public class RmiClient {
     private final RmiServer server;
-    private boolean work;
     public RmiClient(String serverUrl) throws RemoteException, NotBoundException, MalformedURLException {
         this.server = (RmiServer)Naming.lookup("//"+serverUrl+"/RmiServer");
-        this.work = true;
     }
 
     public void mainLoop() throws RemoteException {
         Task myTask;
+        boolean work = true;
         while (work) {
             myTask = server.getTask();
 
-            if (myTask.getType() == TaskType.NO_MORE_WORK) {
-                work = false;
-            } else if (myTask.getType() == TaskType.WAIT) {
-                //TODO
+            if (myTask != null) {
+                try {
+                    server.sendResults(work(myTask));
+                } catch (InterruptedException e) {
+                    work = false;
+                }
             } else {
-                server.sendResults(work(myTask));
+                work = false;
             }
         }
     }
 
-    private Result work(Task myTask) {
+    private Result work(Task myTask) throws InterruptedException {
         Result result = null;
 
         //TODO: write files to disk ?
@@ -49,7 +49,7 @@ public class RmiClient {
             String[] cmd = new String[]{
                     "/bin/sh",
                     "-c",
-                    myTask.getTarget().getCommand()
+                    "PATH=$PATH:. " + myTask.getTarget().getCommand()
             };
             System.out.println("Executing " + Arrays.toString(cmd));
             Process p = Runtime.getRuntime().exec(cmd);
@@ -73,6 +73,7 @@ public class RmiClient {
                 stdErr += s;
             }
 
+            p.waitFor();
             result = new Result(myTask, stdOut, stdErr, p.exitValue());
         } catch (IOException e) {
             //TODO

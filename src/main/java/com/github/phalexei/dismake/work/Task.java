@@ -13,18 +13,10 @@ import java.nio.file.Paths;
  */
 public class Task implements Serializable {
 
-    private TaskType type;
     private Target target;
     private byte[][] files;
 
-    public Task(TaskType type) {
-        this.type = type;
-        this.target = null;
-        this.files = null;
-    }
-
     public Task(Target target) throws IOException {
-        this.type = TaskType.WORK;
         this.target = target;
         this.files = new byte[target.getDependencies().size()][];
         int i = 0;
@@ -35,10 +27,6 @@ public class Task implements Serializable {
 
     public Target getTarget() {
         return this.target;
-    }
-
-    public TaskType getType() {
-        return this.type;
     }
 
     public byte[][] getFiles() {
