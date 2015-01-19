@@ -1,5 +1,7 @@
 #!/bin/sh -xe
 
+./detectpc.sh 2> /dev/null | sed '40q' > clients.txt
+
 HOST=`hostname`
 mvn
 
@@ -15,7 +17,7 @@ pid=$!
 for line in $(cat $CURPATH/clients.txt); 
 do 
 #echo "$line" ;
-ssh $line "
+ssh -o "StrictHostKeyChecking no" $line "
   cd $CURPATH/$DIR
 java -jar $CURPATH/target/DisMake.jar --client $HOST
 " &

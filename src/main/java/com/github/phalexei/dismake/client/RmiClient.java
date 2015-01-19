@@ -7,6 +7,7 @@ import com.github.phalexei.dismake.work.Task;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -60,7 +61,7 @@ public class RmiClient {
                     "-c",
                     "PATH=.:$PATH " + myTask.getTarget().getCommand()
             };
-            System.out.println("Executing " + Arrays.toString(cmd));
+            System.out.println("Executing " + Arrays.toString(cmd) + "on " + InetAddress.getLocalHost().getCanonicalHostName());
             Process p = Runtime.getRuntime().exec(cmd);
 
             BufferedReader stdInput = new BufferedReader(new

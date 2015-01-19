@@ -54,15 +54,21 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
         if (mainTarget != null) {
             lockedTasks = new ConcurrentHashMap<>();
             tasks = new ConcurrentLinkedQueue<>();
-            for (Target t : map.values()) {
-                if (mainTarget.dependsOn(t.getName())) {
-                    if (!t.available()) {
-                        lockedTasks.put(t.getName(), t);
-                    } else {
-                        tasks.add(new Task(t));
+            if (mainTarget.getDependencies().size() > 0) {
+                lockedTasks.put(mainTarget.getName(),mainTarget);
+                for (Target t : map.values()) {
+                    if (mainTarget.dependsOn(t.getName())) {
+                        if (!t.available()) {
+                            lockedTasks.put(t.getName(), t);
+                        } else {
+                            tasks.add(new Task(t));
+                        }
                     }
                 }
+            } else {
+                tasks.add(new Task(mainTarget));
             }
+
             hangingClients = new Object();
         } else {
             throw new MainTargetNotFoundException("Target : " + theTarget +
