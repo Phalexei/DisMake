@@ -1,6 +1,11 @@
 DisMake
 =======
 
+*Langage utilisé = Java
+*Libraire utilisée = RMI
+*Objectifs = Executer un makefile de façon distribué
+*Date = Janvier 2015
+
 Comment compiler ?
 ====================================================================
 *Se placer dans le dossier du projet
