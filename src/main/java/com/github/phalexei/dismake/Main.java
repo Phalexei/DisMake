@@ -57,7 +57,7 @@ public class Main {
      * @throws IOException if anything goes wrong
      */
     private static void startServer(String[] args) throws IOException {
-        PREFIX = "[Server " + InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[a-zA-Z\\.]+", "") + "] ";
+        PREFIX = "[Server " + InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[a-zA-Z\\.]+", "") + " ] ";
         if (args.length != 2 && args.length != 3) {
             error();
             return;
@@ -97,7 +97,7 @@ public class Main {
         try {
             Thread[] threads = new Thread[nbThreads];
             for (int i = 0; i < nbThreads; i++) {
-                PREFIX = "[Client " + InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[a-zA-Z\\.]+", "") + ('a' + (char) i) + "] ";
+                PREFIX = "[Client " + InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[a-zA-Z\\.]+", "") + Character.toString((char) ('a' + (char) i)) + "] ";
                 threads[i] = new Thread(new RmiClient(serverUrl));
                 threads[i].start();
             }
