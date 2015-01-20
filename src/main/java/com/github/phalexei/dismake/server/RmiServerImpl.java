@@ -96,7 +96,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
 
     @Override
     public Task getTask() throws RemoteException {
-        synchronized (hangingClients) {
+        synchronized (this.hangingClients) {
             while (!this.parsingDone) {
                 try {
                     hangingClients.wait();
@@ -108,7 +108,6 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
             if (tasks.size() > 0) {
                 return tasks.poll();
             } else if (lockedTasks.size() > 0) { // no task available right now, but in the future there will be
-
                 try {
                     hangingClients.wait();
                 } catch (InterruptedException e) {
@@ -146,6 +145,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
     }
 
     private void onTaskSuccess(String fileName, BufferedReader fileReader) {
+        System.out.println(Main.PREFIX + "Copying result file " + fileName + " from client");
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8)) {
             IOUtils.copy(fileReader, writer);
         } catch (IOException e) {
