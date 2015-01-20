@@ -17,13 +17,14 @@ import java.util.Arrays;
 /**
  * //TODO doc
  */
-public class RmiClient {
+public class RmiClient implements Runnable {
     private final RmiServer server;
+
     public RmiClient(String serverUrl) throws RemoteException, NotBoundException, MalformedURLException {
         this.server = (RmiServer)Naming.lookup("//"+serverUrl+"/RmiServer");
     }
 
-    public void mainLoop() throws RemoteException {
+    public void run() {
         try {
             Task myTask;
             boolean work = true;

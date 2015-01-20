@@ -1,6 +1,6 @@
 #!/bin/sh -xe
 
-./detectpc.sh 2> /dev/null | sed '40q' > clients.txt
+./detectpc.sh 2> /dev/null | sed $2'q' > clients.txt
 
 HOST=`hostname`
 mvn
@@ -20,6 +20,6 @@ do
 #echo "$line" ;
 ssh -o "StrictHostKeyChecking no" $line "
   cd $DIR
-java -jar $CURPATH/target/DisMake.jar --client $HOST
+java -jar $CURPATH/target/DisMake.jar --client $HOST $3
 " &
 done

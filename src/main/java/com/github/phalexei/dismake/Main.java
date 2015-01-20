@@ -76,15 +76,20 @@ public class Main {
      * @throws MalformedURLException if something else goes wrong
      */
     private static void startClient(String[] args) throws RemoteException, NotBoundException, MalformedURLException {
-        if (args.length != 1) {
+        if (args.length != 2) {
             error();
             return;
         }
 
         String serverUrl = args[0];
-
+        int nbThread = Integer.parseInt(args[1]);
         try {
-            new RmiClient(serverUrl);
+            //int cores = Runtime.getRuntime().availableProcessors();
+            Thread[] threads = new Thread[nbThread];
+            for (int i = 0; i < nbThread; i++) {
+                threads[i] =  new Thread(new RmiClient(serverUrl));
+                threads[i].start();
+            }
         } catch (ConnectException | ConnectIOException e) {
             System.out.println("Failed to connect to Server!");
             System.exit(1337);
