@@ -89,7 +89,9 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                                                           "not found in " + fileName);
         }
         this.parsingDone = true;
-        this.hangingClients.notifyAll();
+        synchronized (this.hangingClients) {
+            this.hangingClients.notifyAll();
+        }
     }
 
     @Override
