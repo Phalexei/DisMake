@@ -6,6 +6,6 @@ Comment compiler ?
 *Se placer dans le dossier du projet
 *Lancer la commande mvn compile
 
-Comment lancer l\'application ?
+Comment lancer l'application ?
 ====================================================================
 ./launch.sh <chemin_nom_makefile> <pourcentage de coeurs par machine>
