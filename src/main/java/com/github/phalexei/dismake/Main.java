@@ -5,10 +5,19 @@ import com.github.phalexei.dismake.parser.Parser.DependencyNotFoundException;
 import com.github.phalexei.dismake.server.RmiServerImpl;
 import com.github.phalexei.dismake.server.RmiServerImpl.MainTargetNotFoundException;
 
+/**
+ * Program entry point.
+ */
 public class Main {
 
     public static final String FIRST = "\\#~}]@|`\\^@]First"; //lol
 
+    /**
+     * Program entry point.
+     *
+     * @param args arguments
+     * @throws Exception if anything goes wrong
+     */
     public static void main(String[] args) throws Exception {
         Boolean isServer = null;
         String serverUrl = null;
@@ -59,6 +68,9 @@ public class Main {
         }
     }
 
+    /**
+     * Called when the program is misused.
+     */
     private static void error() {
         System.out.println("Usage: <cmd> --server <serverUrl> <pathToMakefile>");
         System.out.println("       <cmd> --client <serverUrl>");
