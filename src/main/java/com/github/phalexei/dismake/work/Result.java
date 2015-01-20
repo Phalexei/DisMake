@@ -3,6 +3,7 @@ package com.github.phalexei.dismake.work;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,7 +22,7 @@ public class Result implements Serializable {
         fileName = task.getTarget().getName();
         Path path = Paths.get(fileName);
         if (path != null && Files.exists(path)) {
-            this.fileReader = Files.newBufferedReader(path);
+            this.fileReader = Files.newBufferedReader(path, StandardCharsets.UTF_8);
         } else {
             this.fileReader = null;
         }

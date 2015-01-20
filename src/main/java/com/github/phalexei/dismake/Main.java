@@ -96,7 +96,7 @@ public class Main {
                 threads[i].start();
             }
             for (int i = 0; i < nbThreads; i++) {
-                threads[i].wait();
+                threads[i].join();
             }
         } catch (ConnectException | ConnectIOException e) {
             System.out.println("Failed to connect to Server!");
