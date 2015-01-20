@@ -65,20 +65,25 @@ public class RmiClient implements Runnable {
         System.out.println(Main.PREFIX + "Copy complete");
 
         try {
-            String[] cmd = new String[]{
-                    "/bin/sh",
-                    "-c",
-                    "PATH=.:$PATH " + myTask.getTarget().getCommand()
-            };
-            System.out.println(Main.PREFIX + "Executing " + Arrays.toString(cmd));
-            Process p = Runtime.getRuntime().exec(cmd);
-            System.out.println(Main.PREFIX + "Done.");
+            if (myTask.getTarget().getCommand() == null) {
+                System.out.println(Main.PREFIX + "Target '" + myTask.getTarget().getName() + "' has no associated command, skipping.");
+                result = new Result(myTask, "", "", 0);
+            } else {
+                String[] cmd = new String[]{
+                        "/bin/sh",
+                        "-c",
+                        "PATH=.:$PATH " + myTask.getTarget().getCommand()
+                };
+                System.out.println(Main.PREFIX + "Executing " + Arrays.toString(cmd));
+                Process p = Runtime.getRuntime().exec(cmd);
+                System.out.println(Main.PREFIX + "Done.");
 
-            String stdOut = IOUtils.toString(p.getInputStream());
-            String stdErr = IOUtils.toString(p.getErrorStream());
+                String stdOut = IOUtils.toString(p.getInputStream());
+                String stdErr = IOUtils.toString(p.getErrorStream());
 
-            p.waitFor();
-            result = new Result(myTask, stdOut, stdErr, p.exitValue());
+                p.waitFor();
+                result = new Result(myTask, stdOut, stdErr, p.exitValue());
+            }
         } catch (IOException e) {
             //TODO exception handling
             e.printStackTrace();

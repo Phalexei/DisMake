@@ -64,28 +64,26 @@ public class Parser {
 	}
 
 	private static Map<String, Target> readTargets(String fileName) throws IOException {
-		String target;
-		String command;
 		Map<String, Target> targets = new HashMap<>();
 		List<String> dependencies = new ArrayList<>();
 
 		List<String> fileContents = Files.readAllLines(Paths.get(fileName), StandardCharsets.UTF_8);
 
-		String currentLine;
+		String currentLine, target, command;
 		boolean firstTarget = true;
 
-		for (int index = 0; index < fileContents.size(); index++) {
-			currentLine = fileContents.get(index).replaceAll("\t", "");
+		for (int i = 0; i < fileContents.size(); i++) {
+			currentLine = fileContents.get(i).replaceAll("\t", "");
 
 			if (!currentLine.isEmpty() && !currentLine.startsWith("#")) { // to verifiy if there's something to do
-				String words[] = currentLine.split(":");
-				for (int i = 0; i < words.length; i++) {
-					words[i] = words[i].trim();
+				String split[] = currentLine.split(":");
+				for (int j = 0; j < split.length; j++) {
+					split[j] = split[j].trim();
 				}
-				target = words[0];
+				target = split[0];
 
-				if (words.length > 1) { // if there are some dependencies
-					for (String dep : words[1].split(" ")) {
+				if (split.length > 1) { // if there are some dependencies
+					for (String dep : split[1].split(" ")) {
 						if (dep != null && !dep.isEmpty() && !dep.equals(" ")) {
 							dependencies.add(dep);
 						}
@@ -93,8 +91,8 @@ public class Parser {
 				}
 
 				//read the command associated with the target
-				currentLine = fileContents.get(++index).replaceAll("\t", "");
-				command = currentLine;
+				currentLine = fileContents.get(++i).replaceAll("\t", "").trim();
+				command = currentLine.isEmpty() ? null : currentLine;
 
 				// add the things to the main list
 				// for now dep has just a name, it's incomplete
