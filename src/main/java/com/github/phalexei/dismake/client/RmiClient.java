@@ -74,6 +74,7 @@ public class RmiClient implements Runnable {
             };
             System.out.println(Main.PREFIX + "Executing " + Arrays.toString(cmd));
             Process p = Runtime.getRuntime().exec(cmd);
+            System.out.println(Main.PREFIX + "Done.");
 
             String stdOut = IOUtils.toString(p.getInputStream());
             String stdErr = IOUtils.toString(p.getErrorStream());
