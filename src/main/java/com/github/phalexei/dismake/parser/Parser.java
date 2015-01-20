@@ -85,7 +85,11 @@ public class Parser {
 				target = words[0];
 
 				if (words.length > 1) { // if there are some dependencies
-					Collections.addAll(dependencies, words[1].split(" "));
+					for (String dep : words[1].split(" ")) {
+						if (dep != null && !dep.isEmpty() && !dep.equals(" ")) {
+							dependencies.add(dep);
+						}
+					}
 				}
 
 				//read the command associated with the target

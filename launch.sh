@@ -6,7 +6,8 @@ HOST=`hostname`
 mvn
 
 CURPATH=`pwd`
-DIR=$(dirname $1)
+Z=$(readlink -f $1)
+DIR=$(dirname $Z)
 FILE=$(basename $1)
 cd $DIR
 echo `pwd`
@@ -18,7 +19,7 @@ for line in $(cat $CURPATH/clients.txt);
 do 
 #echo "$line" ;
 ssh -o "StrictHostKeyChecking no" $line "
-  cd $CURPATH/$DIR
+  cd $DIR
 java -jar $CURPATH/target/DisMake.jar --client $HOST
 " &
 done

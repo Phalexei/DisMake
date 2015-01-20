@@ -61,7 +61,7 @@ public class RmiClient {
                     "-c",
                     "PATH=.:$PATH " + myTask.getTarget().getCommand()
             };
-            System.out.println("Executing " + Arrays.toString(cmd) + "on " + InetAddress.getLocalHost().getCanonicalHostName());
+            System.out.println("Executing " + Arrays.toString(cmd) + " on " + InetAddress.getLocalHost().getCanonicalHostName());
             Process p = Runtime.getRuntime().exec(cmd);
 
             BufferedReader stdInput = new BufferedReader(new
