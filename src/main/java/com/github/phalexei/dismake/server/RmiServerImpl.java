@@ -94,15 +94,15 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
 
     @Override
     public Task getTask() throws RemoteException {
-        while (!this.parsingDone) {
-            try {
-                hangingClients.wait();
-            } catch (InterruptedException e) {
-                //TODO exception handling
-                e.printStackTrace();
-            }
-        }
         synchronized (hangingClients) {
+            while (!this.parsingDone) {
+                try {
+                    hangingClients.wait();
+                } catch (InterruptedException e) {
+                    //TODO exception handling
+                    e.printStackTrace();
+                }
+            }
             if (tasks.size() > 0) {
                 return tasks.poll();
             } else if (lockedTasks.size() > 0) { // no task available right now, but in the future there will be
