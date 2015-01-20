@@ -15,6 +15,8 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * //TODO doc
@@ -59,11 +61,18 @@ public class RmiClient implements Runnable {
     private Result work(Task myTask) throws InterruptedException, RemoteException {
         Result result = null;
 
-        Main.print("Copying dependencies from Server");
-        for (Map.Entry<String, byte[]> file : myTask.getFiles().entrySet()) {
+        Set<Entry<String, byte[]>> dependencies = myTask.getFiles().entrySet();
+        Main.print("Copying " + dependencies.size() + " dependencies from Server");
+        long lastPrintTime = 0;
+        int fileCount = 1;
+        for (Entry<String, byte[]> file : dependencies) {
             try {
-                Main.print("\tCopying " + file.getKey());
+                if (System.currentTimeMillis() - 500 > lastPrintTime) {
+                    lastPrintTime = System.currentTimeMillis();
+                    Main.print("\tCopying file " + fileCount + "/" + dependencies.size() + "...");
+                }
                 Files.write(Paths.get(file.getKey()), file.getValue());
+                fileCount++;
             } catch (IOException e) {
                 this.server.errorOnTask(myTask);
             }
