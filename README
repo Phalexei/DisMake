@@ -6,6 +6,11 @@ DisMake
 *Objectifs = Executer un makefile de façon distribué
 *Date = Janvier 2015
 
+Informations préalables
+===================================================================
+Le nombre de clients lancés est défini dans le fichier "clients.txt"
+Pour ajouter un client, ouvrir le fichier et insérer à la ligne l'adressse
+
 Comment compiler ?
 ====================================================================
 *Se placer dans le dossier du projet
@@ -14,3 +19,4 @@ Comment compiler ?
 Comment lancer l'application ?
 ====================================================================
 ./launch.sh <chemin_nom_makefile> <pourcentage de coeurs par machine>
+
