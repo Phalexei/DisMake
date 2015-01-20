@@ -1,2 +1,6 @@
 DisMake
 =======
+
+Comment lancer l\'application ?
+================================================================
+./launch.sh <path_MakeFileName> <percentage_of_cores_by_machine>
