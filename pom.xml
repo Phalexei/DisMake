@@ -66,8 +66,7 @@
 						<configuration>
 							<artifactSet>
 								<includes>
-									<include>commons-io:commons-io</include>
-									<include>com.healthmarketscience.rmiio:rmiio</include>
+									<include>**:**</include>
 								</includes>
 							</artifactSet>
 							<minimizeJar>true</minimizeJar>
