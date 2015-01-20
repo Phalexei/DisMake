@@ -4,9 +4,10 @@ import com.github.phalexei.dismake.Main;
 import com.github.phalexei.dismake.server.RmiServer;
 import com.github.phalexei.dismake.work.Result;
 import com.github.phalexei.dismake.work.Task;
+import com.healthmarketscience.rmiio.RemoteInputStream;
+import com.healthmarketscience.rmiio.RemoteInputStreamClient;
 import org.apache.commons.io.IOUtils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
@@ -56,10 +57,11 @@ public class RmiClient implements Runnable {
         Result result = null;
 
         System.out.println(Main.PREFIX + "Copying dependencies from Server");
-        for (Map.Entry<String, BufferedReader> file : myTask.getFiles().entrySet()) {
+        for (Map.Entry<String, RemoteInputStream> file : myTask.getFiles().entrySet()) {
             try {
                 System.out.println(Main.PREFIX + "\tCopying " + file.getKey());
-                IOUtils.copy(file.getValue(), Files.newBufferedWriter(Paths.get(file.getKey()), StandardCharsets.UTF_8));
+                IOUtils.copy(RemoteInputStreamClient.wrap(file.getValue()),
+                        Files.newBufferedWriter(Paths.get(file.getKey()), StandardCharsets.UTF_8));
             } catch (IOException e) {
                 this.server.errorOnTask(myTask);
             }

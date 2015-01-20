@@ -6,9 +6,10 @@ import com.github.phalexei.dismake.parser.Parser.DependencyNotFoundException;
 import com.github.phalexei.dismake.work.Result;
 import com.github.phalexei.dismake.work.Target;
 import com.github.phalexei.dismake.work.Task;
+import com.healthmarketscience.rmiio.RemoteInputStream;
+import com.healthmarketscience.rmiio.RemoteInputStreamClient;
 import org.apache.commons.io.IOUtils;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -144,10 +145,10 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
         System.exit(exitCode);
     }
 
-    private void onTaskSuccess(String fileName, BufferedReader fileReader) {
+    private void onTaskSuccess(String fileName, RemoteInputStream fileReader) {
         System.out.println(Main.PREFIX + "Copying result file " + fileName + " from client");
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8)) {
-            IOUtils.copy(fileReader, writer);
+            IOUtils.copy(RemoteInputStreamClient.wrap(fileReader), writer);
         } catch (IOException e) {
             //TODO exception handling
             e.printStackTrace();
