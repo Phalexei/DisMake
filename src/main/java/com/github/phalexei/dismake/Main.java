@@ -57,7 +57,7 @@ public class Main {
      * @throws IOException if anything goes wrong
      */
     private static void startServer(String[] args) throws IOException {
-        PREFIX = "[Server " + InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[a-zA-Z]]", "") + "] ";
+        PREFIX = "[Server " + InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[a-zA-Z\\.]+", "") + "] ";
         if (args.length != 2 && args.length != 3) {
             error();
             return;
@@ -84,7 +84,7 @@ public class Main {
      * @throws MalformedURLException if something else goes wrong
      */
     private static void startClient(String[] args) throws RemoteException, NotBoundException, MalformedURLException, InterruptedException, UnknownHostException {
-        PREFIX = "[Client " + InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[a-zA-Z]]", "") + "] ";
+        PREFIX = "[Client " + InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[a-zA-Z\\.]+", "") + "] ";
         if (args.length != 2) {
             error();
             return;
