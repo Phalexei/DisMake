@@ -84,7 +84,6 @@ public class Main {
      * @throws MalformedURLException if something else goes wrong
      */
     private static void startClient(String[] args) throws RemoteException, NotBoundException, MalformedURLException, InterruptedException, UnknownHostException {
-        PREFIX = "[Client " + InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[a-zA-Z\\.]+", "") + "] ";
         if (args.length != 2) {
             error();
             return;
@@ -98,6 +97,7 @@ public class Main {
         try {
             Thread[] threads = new Thread[nbThreads];
             for (int i = 0; i < nbThreads; i++) {
+                PREFIX = "[Client " + InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[a-zA-Z\\.]+", "") + ('a' + (char) i) + "] ";
                 threads[i] = new Thread(new RmiClient(serverUrl));
                 threads[i].start();
             }
