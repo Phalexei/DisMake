@@ -20,10 +20,13 @@ import java.util.Map;
  * //TODO doc
  */
 public class RmiClient implements Runnable {
-    private final RmiServer server;
 
-    public RmiClient(String serverUrl) throws RemoteException, NotBoundException, MalformedURLException {
+    private final RmiServer server;
+    private final boolean debugMode;
+
+    public RmiClient(String serverUrl, boolean debugMode) throws RemoteException, NotBoundException, MalformedURLException {
         this.server = (RmiServer) Naming.lookup("//" + serverUrl + "/RmiServer");
+        this.debugMode = debugMode;
     }
 
     public void run() {
@@ -43,30 +46,33 @@ public class RmiClient implements Runnable {
                     work = false;
                 }
             }
-        } catch (RemoteException ignored) {
-            // somethin happened to the server, client should die silently
+        } catch (RemoteException e) {
+            // Something wrong happened, but maybe it's normal.
+            if (this.debugMode) {
+                e.printStackTrace();
+            }
         } finally {
-            System.out.println(Main.PREFIX + "Client exiting.");
+            Main.print("Client exiting.");
         }
     }
 
     private Result work(Task myTask) throws InterruptedException, RemoteException {
         Result result = null;
 
-        System.out.println(Main.PREFIX + "Copying dependencies from Server");
+        Main.print("Copying dependencies from Server");
         for (Map.Entry<String, byte[]> file : myTask.getFiles().entrySet()) {
             try {
-                System.out.println(Main.PREFIX + "\tCopying " + file.getKey());
+                Main.print("\tCopying " + file.getKey());
                 Files.write(Paths.get(file.getKey()), file.getValue());
             } catch (IOException e) {
                 this.server.errorOnTask(myTask);
             }
         }
-        System.out.println(Main.PREFIX + "Copy complete");
+        Main.print("Copy complete");
 
         try {
             if (myTask.getTarget().getCommand() == null) {
-                System.out.println(Main.PREFIX + "Target '" + myTask.getTarget().getName() + "' has no associated command, skipping.");
+                Main.print("Target '" + myTask.getTarget().getName() + "' has no associated command, skipping.");
                 result = new Result(myTask, "", "", 0);
             } else {
                 String[] cmd = new String[]{
@@ -74,9 +80,9 @@ public class RmiClient implements Runnable {
                         "-c",
                         "PATH=.:$PATH " + myTask.getTarget().getCommand()
                 };
-                System.out.println(Main.PREFIX + "Executing " + Arrays.toString(cmd));
+                Main.print("Executing " + Arrays.toString(cmd));
                 Process p = Runtime.getRuntime().exec(cmd);
-                System.out.println(Main.PREFIX + "Done.");
+                Main.print("Done.");
 
                 String stdOut = IOUtils.toString(p.getInputStream());
                 String stdErr = IOUtils.toString(p.getErrorStream());

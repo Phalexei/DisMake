@@ -14,6 +14,8 @@ import java.rmi.ConnectIOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Program entry point.
@@ -25,7 +27,9 @@ public class Main {
      */
     public static final String FIRST = " :: ";
 
-    public static String PREFIX;
+    public static String PRINT_PREFIX;
+
+    private static final Map<String, Integer> printId = new HashMap<>();
 
     /**
      * Program entry point.
@@ -56,7 +60,8 @@ public class Main {
      * @throws IOException if anything goes wrong
      */
     private static void startServer(String[] args) throws IOException {
-        PREFIX = "[Server " + InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[a-zA-Z\\.]+", "") + "] ";
+        PRINT_PREFIX = "[Server " + InetAddress.getLocalHost().getCanonicalHostName() + " ] ";
+
         if (args.length != 2 && args.length != 3) {
             error();
             return;
@@ -83,7 +88,9 @@ public class Main {
      * @throws MalformedURLException if something else goes wrong
      */
     private static void startClient(String[] args) throws RemoteException, NotBoundException, MalformedURLException, InterruptedException, UnknownHostException {
-        if (args.length != 2) {
+        PRINT_PREFIX = "[Client " + InetAddress.getLocalHost().getCanonicalHostName() + ":__id] ";
+
+        if (args.length != 2 && args.length != 3) {
             error();
             return;
         }
@@ -93,20 +100,37 @@ public class Main {
         String serverUrl = args[0];
         float threadRatio = Integer.parseInt(args[1]) / 100f;
         int nbThreads = (int) Math.max(1, Math.floor(nbCores * threadRatio));
+        boolean debugMode;
+        if (args.length == 3) {
+            if ("debug".equalsIgnoreCase(args[2])) {
+                debugMode = true;
+            } else {
+                error();
+                return;
+            }
+        } else {
+            debugMode = false;
+        }
         try {
             Thread[] threads = new Thread[nbThreads];
             for (int i = 0; i < nbThreads; i++) {
-                PREFIX = "[Client " + InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[a-zA-Z\\.]+", "") + "] ";
-                threads[i] = new Thread(new RmiClient(serverUrl));
+                threads[i] = new Thread(new RmiClient(serverUrl, debugMode));
+                printId.put(threads[i].getName(), i);
                 threads[i].start();
             }
             for (int i = 0; i < nbThreads; i++) {
                 threads[i].join();
             }
         } catch (ConnectException | ConnectIOException e) {
-            System.out.println(PREFIX + "Failed to connect to Server!");
+            Main.print("Failed to connect to Server!");
             System.exit(1337);
         }
+    }
+
+    public static void print(String string) {
+        String threadName = Thread.currentThread().getName();
+        Integer id = printId.get(threadName);
+        System.out.println(PRINT_PREFIX.replace("__id", id == null ? "x" : id.toString()) + string);
     }
 
     /**

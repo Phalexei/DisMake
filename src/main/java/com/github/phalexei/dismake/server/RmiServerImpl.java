@@ -39,20 +39,20 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
         super(0);    // required to avoid the 'rmic' step
         this.parsingDone = false;
         this.url = url;
-        System.out.println(Main.PREFIX + "RMI server started on " + this.url);
+        Main.print("RMI server started on " + this.url);
 
         try { //special exception handler for registry creation
             LocateRegistry.createRegistry(1099);
-            System.out.println(Main.PREFIX + "java RMI registry created.");
+            Main.print("java RMI registry created.");
         } catch (RemoteException e) {
             //do nothing, error means registry already exists
-            System.out.println(Main.PREFIX + "java RMI registry already exists.");
+            Main.print("java RMI registry already exists.");
         }
 
         hangingClients = new Object();
         // Bind this object instance to the name "RmiServer"
         Naming.rebind("//" + this.url + "/RmiServer", this);
-        System.out.println(Main.PREFIX + "PeerServer bound in registry");
+        Main.print("PeerServer bound in registry");
 
         Map<String, Target> map = Parser.parse(fileName);
 
@@ -81,8 +81,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                 tasks.add(new Task(mainTarget));
             }
         } else {
-            throw new MainTargetNotFoundException("Target : " + theTarget +
-                                                          "not found in " + fileName);
+            throw new MainTargetNotFoundException("Target : " + theTarget + "not found in " + fileName);
         }
         this.parsingDone = true;
         synchronized (this.hangingClients) {
@@ -134,14 +133,14 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
 
     private void onTaskFailure(String taskName, int exitCode, String stdErr) {
         //TODO: stop the whole process (maybe ?) and display error properly
-        System.out.println(Main.PREFIX + taskName + " failed with error code: " + exitCode);
-        System.out.println(Main.PREFIX + "More information:");
-        System.out.println(stdErr);
+        Main.print(taskName + " failed with error code: " + exitCode);
+        Main.print("More information:");
+        Main.print(stdErr);
         System.exit(exitCode);
     }
 
     private void onTaskSuccess(String fileName, byte[] fileContent) {
-        System.out.println(Main.PREFIX + "Copying result file " + fileName + " from client");
+        Main.print("Copying result file " + fileName + " from client");
         try {
             Files.write(Paths.get(fileName), fileContent);
         } catch (IOException e) {
@@ -168,8 +167,8 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
 
             if (tasks.size() == 0 && lockedTasks.size() == 0) { // no more tasks, wake every hanging process
                 hangingClients.notifyAll();
-                System.out.println(Main.PREFIX + "DisMake terminated successfully :-)");
-                System.out.println(Main.PREFIX + "Server shutting down.");
+                Main.print("DisMake terminated successfully :-)");
+                Main.print("Server shutting down.");
                 try {
                     Naming.unbind("//" + this.url + "/RmiServer");
                 } catch (RemoteException | MalformedURLException | NotBoundException e) {
