@@ -53,6 +53,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
             System.out.println("java RMI registry already exists.");
         }
 
+        hangingClients = new Object();
         // Bind this object instance to the name "RmiServer"
         Naming.rebind("//" + this.url + "/RmiServer", this);
         System.out.println("PeerServer bound in registry");
@@ -83,8 +84,6 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
             } else {
                 tasks.add(new Task(mainTarget));
             }
-
-            hangingClients = new Object();
         } else {
             throw new MainTargetNotFoundException("Target : " + theTarget +
                                                           "not found in " + fileName);
