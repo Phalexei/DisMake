@@ -46,7 +46,6 @@ public class Main {
             startClient(Arrays.copyOfRange(args, 1, args.length));
         } else {
             error();
-            return;
         }
     }
 
