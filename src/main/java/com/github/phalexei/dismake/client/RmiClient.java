@@ -1,5 +1,6 @@
 package com.github.phalexei.dismake.client;
 
+import com.github.phalexei.dismake.Main;
 import com.github.phalexei.dismake.server.RmiServer;
 import com.github.phalexei.dismake.work.Result;
 import com.github.phalexei.dismake.work.Task;
@@ -7,7 +8,6 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -48,20 +48,23 @@ public class RmiClient implements Runnable {
         } catch (RemoteException ignored) {
             // somethin happened to the server, client should die silently
         } finally {
-            System.out.println("Client exiting.");
+            System.out.println(Main.PREFIX + "Client exiting.");
         }
     }
 
     private Result work(Task myTask) throws InterruptedException, RemoteException {
         Result result = null;
 
+        System.out.println(Main.PREFIX + "Copying dependencies from Server");
         for (Map.Entry<String, BufferedReader> file : myTask.getFiles().entrySet()) {
             try {
+                System.out.println(Main.PREFIX + "\tCopying " + file.getKey());
                 IOUtils.copy(file.getValue(), Files.newBufferedWriter(Paths.get(file.getKey()), StandardCharsets.UTF_8));
             } catch (IOException e) {
                 this.server.errorOnTask(myTask);
             }
         }
+        System.out.println(Main.PREFIX + "Copy complete");
 
         try {
             String[] cmd = new String[]{
@@ -69,7 +72,7 @@ public class RmiClient implements Runnable {
                     "-c",
                     "PATH=.:$PATH " + myTask.getTarget().getCommand()
             };
-            System.out.println("Executing " + Arrays.toString(cmd) + " on " + InetAddress.getLocalHost().getCanonicalHostName());
+            System.out.println(Main.PREFIX + "Executing " + Arrays.toString(cmd));
             Process p = Runtime.getRuntime().exec(cmd);
 
             String stdOut = IOUtils.toString(p.getInputStream());

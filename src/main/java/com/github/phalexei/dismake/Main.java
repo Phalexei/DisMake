@@ -6,7 +6,9 @@ import com.github.phalexei.dismake.server.RmiServerImpl;
 import com.github.phalexei.dismake.server.RmiServerImpl.MainTargetNotFoundException;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.UnknownHostException;
 import java.rmi.ConnectException;
 import java.rmi.ConnectIOException;
 import java.rmi.NotBoundException;
@@ -22,6 +24,8 @@ public class Main {
      * Internal key used to save the main target.
      */
     public static final String FIRST = " :: ";
+
+    public static String PREFIX;
 
     /**
      * Program entry point.
@@ -53,6 +57,7 @@ public class Main {
      * @throws IOException if anything goes wrong
      */
     private static void startServer(String[] args) throws IOException {
+        PREFIX = "[Server " + InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[a-zA-Z]]", "") + "] ";
         if (args.length != 2 && args.length != 3) {
             error();
             return;
@@ -78,7 +83,8 @@ public class Main {
      * @throws NotBoundException if anything else goes wrong
      * @throws MalformedURLException if something else goes wrong
      */
-    private static void startClient(String[] args) throws RemoteException, NotBoundException, MalformedURLException, InterruptedException {
+    private static void startClient(String[] args) throws RemoteException, NotBoundException, MalformedURLException, InterruptedException, UnknownHostException {
+        PREFIX = "[Client " + InetAddress.getLocalHost().getCanonicalHostName().replaceAll("[a-zA-Z]]", "") + "] ";
         if (args.length != 2) {
             error();
             return;
@@ -99,7 +105,7 @@ public class Main {
                 threads[i].join();
             }
         } catch (ConnectException | ConnectIOException e) {
-            System.out.println("Failed to connect to Server!");
+            System.out.println(PREFIX + "Failed to connect to Server!");
             System.exit(1337);
         }
     }

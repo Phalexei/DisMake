@@ -1,10 +1,10 @@
 package com.github.phalexei.dismake.server;
 
 import com.github.phalexei.dismake.Main;
-import com.github.phalexei.dismake.work.Target;
 import com.github.phalexei.dismake.parser.Parser;
 import com.github.phalexei.dismake.parser.Parser.DependencyNotFoundException;
 import com.github.phalexei.dismake.work.Result;
+import com.github.phalexei.dismake.work.Target;
 import com.github.phalexei.dismake.work.Task;
 import org.apache.commons.io.IOUtils;
 
@@ -43,20 +43,20 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
         super(0);    // required to avoid the 'rmic' step
         this.parsingDone = false;
         this.url = url;
-        System.out.println("RMI server started on " + this.url);
+        System.out.println(Main.PREFIX + "RMI server started on " + this.url);
 
         try { //special exception handler for registry creation
             LocateRegistry.createRegistry(1099);
-            System.out.println("java RMI registry created.");
+            System.out.println(Main.PREFIX + "java RMI registry created.");
         } catch (RemoteException e) {
             //do nothing, error means registry already exists
-            System.out.println("java RMI registry already exists.");
+            System.out.println(Main.PREFIX + "java RMI registry already exists.");
         }
 
         hangingClients = new Object();
         // Bind this object instance to the name "RmiServer"
         Naming.rebind("//" + this.url + "/RmiServer", this);
-        System.out.println("PeerServer bound in registry");
+        System.out.println(Main.PREFIX + "PeerServer bound in registry");
 
         Map<String, Target> map = Parser.parse(fileName);
 
@@ -139,8 +139,8 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
 
     private void onTaskFailure(String taskName, int exitCode, String stdErr) {
         //TODO: stop the whole process (maybe ?) and display error properly
-        System.out.println(taskName + " failed with error code: " + exitCode);
-        System.out.println("More information:");
+        System.out.println(Main.PREFIX + taskName + " failed with error code: " + exitCode);
+        System.out.println(Main.PREFIX + "More information:");
         System.out.println(stdErr);
         System.exit(exitCode);
     }
@@ -172,8 +172,8 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
 
             if (tasks.size() == 0 && lockedTasks.size() == 0) { // no more tasks, wake every hanging process
                 hangingClients.notifyAll();
-                System.out.println("DisMake terminated successfully :-)");
-                System.out.println("Server shutting down.");
+                System.out.println(Main.PREFIX+"DisMake terminated successfully :-)");
+                System.out.println(Main.PREFIX+"Server shutting down.");
                 try {
                     Naming.unbind("//" + this.url + "/RmiServer");
                 } catch (RemoteException | MalformedURLException | NotBoundException e) {
