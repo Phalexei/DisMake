@@ -1,7 +1,5 @@
 package com.github.phalexei.dismake.work;
 
-import com.github.phalexei.dismake.Target;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Serializable;

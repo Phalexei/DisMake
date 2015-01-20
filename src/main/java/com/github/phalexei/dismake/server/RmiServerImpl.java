@@ -1,7 +1,7 @@
 package com.github.phalexei.dismake.server;
 
 import com.github.phalexei.dismake.Main;
-import com.github.phalexei.dismake.Target;
+import com.github.phalexei.dismake.work.Target;
 import com.github.phalexei.dismake.parser.Parser;
 import com.github.phalexei.dismake.parser.Parser.DependencyNotFoundException;
 import com.github.phalexei.dismake.work.Result;

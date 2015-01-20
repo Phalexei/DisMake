@@ -1,4 +1,4 @@
-package com.github.phalexei.dismake;
+package com.github.phalexei.dismake.work;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,7 +69,7 @@ public class Target implements Serializable {
 
 	/**
 	 * @return the list of weak (not yet verified) dependencies of a
-	 * {@link com.github.phalexei.dismake.Target}
+	 * {@link Target}
 	 */
 	public List<String> getWeakDependencies() {
 		return weakDependencies;

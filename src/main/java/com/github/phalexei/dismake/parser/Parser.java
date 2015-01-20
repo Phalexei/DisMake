@@ -1,7 +1,7 @@
 package com.github.phalexei.dismake.parser;
 
 import com.github.phalexei.dismake.Main;
-import com.github.phalexei.dismake.Target;
+import com.github.phalexei.dismake.work.Target;
 
 import java.io.File;
 import java.io.IOException;
