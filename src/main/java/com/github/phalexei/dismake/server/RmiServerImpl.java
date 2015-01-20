@@ -108,6 +108,11 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
         }
     }
 
+    @Override
+    public void errorOnTask(Task failedTask) throws RemoteException {
+        tasks.add(failedTask);
+    }
+
     private void onTaskFailure(String taskName, int exitCode, String stdErr) {
         //TODO: stop the whole process (maybe ?) and display error properly
         System.out.println(taskName + " failed with error code: " + exitCode);

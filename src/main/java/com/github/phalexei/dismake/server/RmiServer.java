@@ -33,4 +33,14 @@ public interface RmiServer extends Remote {
      * @throws RemoteException
      */
     void sendResults(Result doneTask) throws RemoteException;
+
+    /**
+     * Notify the server that a client failed to execute failedTask,
+     * but failedTask itself did not fail.
+     * <p>
+     * The server should make this task available again
+     * @param failedTask the task that failed
+     * @throws RemoteException
+     */
+    void errorOnTask(Task failedTask) throws RemoteException;
 }
