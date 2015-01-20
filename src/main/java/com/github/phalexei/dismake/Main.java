@@ -5,6 +5,14 @@ import com.github.phalexei.dismake.parser.Parser.DependencyNotFoundException;
 import com.github.phalexei.dismake.server.RmiServerImpl;
 import com.github.phalexei.dismake.server.RmiServerImpl.MainTargetNotFoundException;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.rmi.ConnectException;
+import java.rmi.ConnectIOException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.util.Arrays;
+
 /**
  * Program entry point.
  */
@@ -19,52 +27,67 @@ public class Main {
      * @throws Exception if anything goes wrong
      */
     public static void main(String[] args) throws Exception {
-        Boolean isServer = null;
-        String serverUrl = null;
-        String makeFile = null;
-        String target = null;
-        for (int i = 0; i < args.length; i++) {
-            switch (args[i].toLowerCase()) {
-                case "--server":
-                    if (isServer != null || i == args.length - 1) {
-                        error();
-                        return;
-                    }
-                    isServer = true;
-                    serverUrl = args[++i];
-                    makeFile = args[++i];
-                    if (args.length > i + 1) {
-                        target = args[++i];
-                    }
-                    break;
-                case "--client":
-                    if (isServer != null || i == args.length - 1) {
-                        error();
-                        return;
-                    }
-                    isServer = false;
-                    serverUrl = args[++i];
-                    break;
-                default:
-                    error();
-                    break;
-            }
-        }
-        if (isServer == null || serverUrl == null) {
+        if (args.length < 1) {
             error();
             return;
         }
 
-        if (isServer) {
-            try {
-                new RmiServerImpl(serverUrl, makeFile, target);
-            } catch (DependencyNotFoundException | MainTargetNotFoundException e) {
-                //TODO exception handling
-                e.printStackTrace();
-            }
+        String firstArg = args[0].toLowerCase();
+        if ("--server".equals(firstArg)) {
+            startServer(Arrays.copyOfRange(args, 1, args.length));
+        } else if ("--client".equals(firstArg)) {
+            startClient(Arrays.copyOfRange(args, 1, args.length));
         } else {
-            RmiClient client = new RmiClient(serverUrl);
-            client.mainLoop();
+            error();
+            return;
+        }
+    }
+
+    /**
+     * Entry point for Server mode.
+     *
+     * @param args arguments
+     * @throws IOException if anything goes wrong
+     */
+    private static void startServer(String[] args) throws IOException {
+        if (args.length != 2 && args.length != 3) {
+            error();
+            return;
+        }
+
+        String serverUrl = args[0];
+        String makefile = args[1];
+        String target = args.length == 3 ? args[2] : null;
+
+        try {
+            new RmiServerImpl(serverUrl, makefile, target);
+        } catch (DependencyNotFoundException | MainTargetNotFoundException e) {
+            // TODO Handle Exception
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Entry point for Client mode.
+     *
+     * @param args arguments
+     * @throws RemoteException if anything goes wrong
+     * @throws NotBoundException if anything else goes wrong
+     * @throws MalformedURLException if something else goes wrong
+     */
+    private static void startClient(String[] args) throws RemoteException, NotBoundException, MalformedURLException {
+        if (args.length != 1) {
+            error();
+            return;
+        }
+
+        String serverUrl = args[0];
+
+        try {
+            new RmiClient(serverUrl);
+        } catch (ConnectException | ConnectIOException e) {
+            System.out.println("Failed to connect to Server!");
+            System.exit(1337);
         }
     }
 
