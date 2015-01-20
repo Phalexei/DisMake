@@ -37,9 +37,11 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
     private final Queue<Task>         tasks;
     private final Map<String, Target> lockedTasks;
     private final Object              hangingClients;
+    private       boolean             parsingDone;
 
     public RmiServerImpl(String url, String fileName, String theTarget) throws IOException, DependencyNotFoundException, MainTargetNotFoundException {
         super(0);    // required to avoid the 'rmic' step
+        this.parsingDone = false;
         this.url = url;
         System.out.println("RMI server started on " + this.url);
 
@@ -50,6 +52,10 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
             //do nothing, error means registry already exists
             System.out.println("java RMI registry already exists.");
         }
+
+        // Bind this object instance to the name "RmiServer"
+        Naming.rebind("//" + this.url + "/RmiServer", this);
+        System.out.println("PeerServer bound in registry");
 
         Map<String, Target> map = Parser.parse(fileName);
 
@@ -83,14 +89,20 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
             throw new MainTargetNotFoundException("Target : " + theTarget +
                                                           "not found in " + fileName);
         }
-
-        // Bind this object instance to the name "RmiServer"
-        Naming.rebind("//" + this.url + "/RmiServer", this);
-        System.out.println("PeerServer bound in registry");
+        this.parsingDone = true;
+        this.hangingClients.notifyAll();
     }
 
     @Override
     public Task getTask() throws RemoteException {
+        while (!this.parsingDone) {
+            try {
+                hangingClients.wait();
+            } catch (InterruptedException e) {
+                //TODO exception handling
+                e.printStackTrace();
+            }
+        }
         if (tasks.size() > 0) {
             return tasks.poll();
         } else if (lockedTasks.size() > 0) { // no task available right now, but in the future there will be
