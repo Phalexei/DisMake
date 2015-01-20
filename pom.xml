@@ -64,6 +64,7 @@
 									<include>commons-io:commons-io</include>
 								</includes>
 							</artifactSet>
+							<minimizeJar>true</minimizeJar>
 						</configuration>
 					</execution>
 				</executions>
