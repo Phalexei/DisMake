@@ -103,20 +103,22 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                 e.printStackTrace();
             }
         }
-        if (tasks.size() > 0) {
-            return tasks.poll();
-        } else if (lockedTasks.size() > 0) { // no task available right now, but in the future there will be
-            synchronized (hangingClients) {
+        synchronized (hangingClients) {
+            if (tasks.size() > 0) {
+                return tasks.poll();
+            } else if (lockedTasks.size() > 0) { // no task available right now, but in the future there will be
+
                 try {
                     hangingClients.wait();
                 } catch (InterruptedException e) {
                     //TODO exception handling
                     e.printStackTrace();
                 }
+
+                return tasks.size() > 0 ? tasks.poll() : null;
+            } else { // nothing more to do
+                return null;
             }
-            return tasks.size() > 0 ? tasks.poll() : null;
-        } else { // nothing more to do
-            return null;
         }
     }
 
