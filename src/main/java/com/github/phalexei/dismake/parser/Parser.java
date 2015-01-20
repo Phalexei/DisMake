@@ -10,12 +10,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-/*
- * Parser
+/**
+ * Makefile parser.
  *
- * Parser for a makefile
+ * Reads a Makefile and converts it into a bunch of {@link Target} instances.
  */
-
 public class Parser {
 
 	public static class DependencyNotFoundException extends Throwable {
@@ -27,7 +26,6 @@ public class Parser {
 	public static Map<String, Target> parse(String fileName) throws IOException, DependencyNotFoundException {
 		Map<String, Target> targets = readTargets(fileName);
 		populateDependencies(targets);
-
 		return targets;
 	}
 
@@ -54,7 +52,7 @@ public class Parser {
 							}
 						}
 						if (!found) {
-							throw new DependencyNotFoundException("Target : " + target.getName() + "\nDependency not found : " + weakDependency);
+							throw new DependencyNotFoundException("Target: '" + target.getName() + "'; Dependency not found: " + weakDependency);
 						}
 					}
 				}
@@ -75,14 +73,16 @@ public class Parser {
 		for (int i = 0; i < fileContents.size(); i++) {
 			currentLine = fileContents.get(i).replaceAll("\t", "");
 
-			if (!currentLine.isEmpty() && !currentLine.startsWith("#")) { // to verifiy if there's something to do
+			// Ignore empty lines
+			if (!currentLine.isEmpty() && !currentLine.startsWith("#")) {
 				String split[] = currentLine.split(":");
 				for (int j = 0; j < split.length; j++) {
 					split[j] = split[j].trim();
 				}
 				target = split[0];
 
-				if (split.length > 1) { // if there are some dependencies
+                // Check for and register dependencies
+				if (split.length > 1) {
 					for (String dep : split[1].split(" ")) {
 						if (dep != null && !dep.isEmpty() && !dep.equals(" ")) {
 							dependencies.add(dep);
@@ -90,12 +90,11 @@ public class Parser {
 					}
 				}
 
-				//read the command associated with the target
+				// Read the command associated with the target, if any
 				currentLine = fileContents.get(++i).replaceAll("\t", "").trim();
 				command = currentLine.isEmpty() ? null : currentLine;
 
-				// add the things to the main list
-				// for now dep has just a name, it's incomplete
+				// Register target with weak dependencies. Dependencies will be checked later.
 				targets.put(target, new Target(command, target, dependencies));
 				if (firstTarget && !target.startsWith(".")) {
 					firstTarget = false;
