@@ -6,10 +6,17 @@ import com.github.phalexei.dismake.parser.Parser;
 import com.github.phalexei.dismake.parser.Parser.DependencyNotFoundException;
 import com.github.phalexei.dismake.work.Result;
 import com.github.phalexei.dismake.work.Task;
+import org.apache.commons.io.IOUtils;
 
-import java.io.FileOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
@@ -26,13 +33,15 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
         }
     }
 
-    private final Queue<Task> tasks;
+    private final String              url;
+    private final Queue<Task>         tasks;
     private final Map<String, Target> lockedTasks;
-    private final Object hangingClients;
+    private final Object              hangingClients;
 
     public RmiServerImpl(String url, String fileName, String theTarget) throws IOException, DependencyNotFoundException, MainTargetNotFoundException {
         super(0);    // required to avoid the 'rmic' step
-        System.out.println("RMI server started on " + url);
+        this.url = url;
+        System.out.println("RMI server started on " + this.url);
 
         try { //special exception handler for registry creation
             LocateRegistry.createRegistry(1099);
@@ -55,7 +64,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
             lockedTasks = new ConcurrentHashMap<>();
             tasks = new ConcurrentLinkedQueue<>();
             if (mainTarget.getDependencies().size() > 0) {
-                lockedTasks.put(mainTarget.getName(),mainTarget);
+                lockedTasks.put(mainTarget.getName(), mainTarget);
                 for (Target t : map.values()) {
                     if (mainTarget.dependsOn(t.getName())) {
                         if (!t.available()) {
@@ -72,11 +81,11 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
             hangingClients = new Object();
         } else {
             throw new MainTargetNotFoundException("Target : " + theTarget +
-                    "not found in " + fileName);
+                                                          "not found in " + fileName);
         }
 
         // Bind this object instance to the name "RmiServer"
-        Naming.rebind("//" + url + "/RmiServer", this);
+        Naming.rebind("//" + this.url + "/RmiServer", this);
         System.out.println("PeerServer bound in registry");
     }
 
@@ -100,11 +109,11 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
     }
 
     @Override
-    public void sendResults(Result result) throws RemoteException {
+    public void sendResults(Result result) {
         if (result.getExitCode() == 0) { // exit code for "success"
-            onTaskSuccess(result.getTaskName(), result.getFile());
+            onTaskSuccess(result.getFileName(), result.getFileReader());
         } else { // failure during build
-            onTaskFailure(result.getTaskName(), result.getExitCode(), result.getStdErr());
+            onTaskFailure(result.getFileName(), result.getExitCode(), result.getStdErr());
         }
     }
 
@@ -121,10 +130,17 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
         System.exit(exitCode);
     }
 
-    private void onTaskSuccess(String taskName, byte[] file) {
+    private void onTaskSuccess(String fileName, BufferedReader fileReader) {
+        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8)) {
+            IOUtils.copy(fileReader, writer);
+        } catch (IOException e) {
+            //TODO exception handling
+            e.printStackTrace();
+        }
+
         synchronized (hangingClients) {
             for (Target t : lockedTasks.values()) {
-                if (t.getDependencies().containsKey(taskName)) {
+                if (t.getDependencies().containsKey(fileName)) {
                     t.resolveOneDependency();
                     if (t.available()) {
                         try {
@@ -143,17 +159,12 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                 hangingClients.notifyAll();
                 System.out.println("DisMake terminated successfully :-)");
                 System.out.println("Server shutting down.");
-                System.exit(0);
+                try {
+                    Naming.unbind("//" + this.url + "/RmiServer");
+                } catch (RemoteException | MalformedURLException | NotBoundException e) {
+                    System.exit(0);
+                }
             }
-        }
-
-        try {
-            FileOutputStream fos = new FileOutputStream(taskName);
-            fos.write(file);
-            fos.close();
-        } catch (IOException e) {
-            //TODO exception handling
-            e.printStackTrace();
         }
     }
 }

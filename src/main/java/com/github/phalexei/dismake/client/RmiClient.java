@@ -3,16 +3,20 @@ package com.github.phalexei.dismake.client;
 import com.github.phalexei.dismake.server.RmiServer;
 import com.github.phalexei.dismake.work.Result;
 import com.github.phalexei.dismake.work.Task;
+import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Arrays;
+import java.util.Map;
 
 /**
  * //TODO doc
@@ -21,7 +25,7 @@ public class RmiClient implements Runnable {
     private final RmiServer server;
 
     public RmiClient(String serverUrl) throws RemoteException, NotBoundException, MalformedURLException {
-        this.server = (RmiServer)Naming.lookup("//"+serverUrl+"/RmiServer");
+        this.server = (RmiServer) Naming.lookup("//" + serverUrl + "/RmiServer");
     }
 
     public void run() {
@@ -48,14 +52,17 @@ public class RmiClient implements Runnable {
         }
     }
 
-    private Result work(Task myTask) throws InterruptedException {
+    private Result work(Task myTask) throws InterruptedException, RemoteException {
         Result result = null;
 
-        //TODO: write files to disk ?
-        for (byte[] file : myTask.getFiles()) {
-            System.out.println("file : ");
-            System.out.println(file);
+        for (Map.Entry<String, BufferedReader> file : myTask.getFiles().entrySet()) {
+            try {
+                IOUtils.copy(file.getValue(), Files.newBufferedWriter(Paths.get(file.getKey()), StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                this.server.errorOnTask(myTask);
+            }
         }
+
         try {
             String[] cmd = new String[]{
                     "/bin/sh",
@@ -65,24 +72,8 @@ public class RmiClient implements Runnable {
             System.out.println("Executing " + Arrays.toString(cmd) + " on " + InetAddress.getLocalHost().getCanonicalHostName());
             Process p = Runtime.getRuntime().exec(cmd);
 
-            BufferedReader stdInput = new BufferedReader(new
-                    InputStreamReader(p.getInputStream()));
-
-            BufferedReader stdError = new BufferedReader(new
-                    InputStreamReader(p.getErrorStream()));
-
-            String s;
-            // read the output from the command
-            String stdOut = "";
-            while ((s = stdInput.readLine()) != null) {
-                stdOut += s;
-            }
-
-            // read any errors from the attempted command
-            String stdErr = "";
-            while ((s = stdError.readLine()) != null) {
-                stdErr += s;
-            }
+            String stdOut = IOUtils.toString(p.getInputStream());
+            String stdErr = IOUtils.toString(p.getErrorStream());
 
             p.waitFor();
             result = new Result(myTask, stdOut, stdErr, p.exitValue());

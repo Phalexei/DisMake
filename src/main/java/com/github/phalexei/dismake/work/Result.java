@@ -1,25 +1,29 @@
 package com.github.phalexei.dismake.work;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * Result of a task
+ */
 public class Result implements Serializable {
-    private final String taskName;
-    private final byte[] file;
-    private final String stdOut;
-    private final String stdErr;
-    private final int exitCode;
+    private final String         fileName;
+    private final BufferedReader fileReader;
+    private final String         stdOut;
+    private final String         stdErr;
+    private final int            exitCode;
 
     public Result(Task task, String stdOut, String stdErr, int exitCode) throws IOException {
-        taskName = task.getTarget().getName();
-        Path path = Paths.get(taskName);
+        fileName = task.getTarget().getName();
+        Path path = Paths.get(fileName);
         if (path != null && Files.exists(path)) {
-            this.file = Files.readAllBytes(path);
+            this.fileReader = Files.newBufferedReader(path);
         } else {
-            this.file = null;
+            this.fileReader = null;
         }
 
         this.stdOut = stdOut;
@@ -39,11 +43,11 @@ public class Result implements Serializable {
         return exitCode;
     }
 
-    public String getTaskName() {
-        return this.taskName;
+    public String getFileName() {
+        return this.fileName;
     }
 
-    public byte[] getFile() {
-        return file;
+    public BufferedReader getFileReader() {
+        return fileReader;
     }
 }
