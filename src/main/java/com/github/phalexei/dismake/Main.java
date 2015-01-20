@@ -60,8 +60,8 @@ public class Main {
     }
 
     private static void error() {
-        //TODO : this function lol
-        System.out.println("NOPE");
+        System.out.println("Usage: <cmd> --server <serverUrl> <pathToMakefile>");
+        System.out.println("       <cmd> --client <serverUrl>");
         System.exit(42);
     }
 }
