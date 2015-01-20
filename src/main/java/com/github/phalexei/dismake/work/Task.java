@@ -1,13 +1,9 @@
 package com.github.phalexei.dismake.work;
 
-import com.healthmarketscience.rmiio.GZIPRemoteInputStream;
-import com.healthmarketscience.rmiio.RemoteInputStream;
-import com.healthmarketscience.rmiio.RemoteInputStreamServer;
-
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +20,7 @@ public class Task implements Serializable {
     /**
      * Dependencies of this task
      */
-    private Map<String, RemoteInputStream> files;
+    private Map<String, byte[]> files;
 
     /**
      * Creates a new task
@@ -36,9 +32,7 @@ public class Task implements Serializable {
         this.target = target;
         this.files = new HashMap<>();
         for (Target t : target.getDependencies().values()) {
-            RemoteInputStreamServer ris = new GZIPRemoteInputStream(new BufferedInputStream(
-                    new FileInputStream(t.getName())));
-            this.files.put(t.getName(), ris.export());
+            this.files.put(t.getName(), Files.readAllBytes(Paths.get(t.getName())));
         }
     }
 
@@ -56,7 +50,7 @@ public class Task implements Serializable {
      *
      * @return this task's dependencies
      */
-    public Map<String, RemoteInputStream> getFiles() {
+    public Map<String, byte[]> getFiles() {
         return this.files;
     }
 }

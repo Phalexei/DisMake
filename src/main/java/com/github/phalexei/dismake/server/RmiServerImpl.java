@@ -6,14 +6,9 @@ import com.github.phalexei.dismake.parser.Parser.DependencyNotFoundException;
 import com.github.phalexei.dismake.work.Result;
 import com.github.phalexei.dismake.work.Target;
 import com.github.phalexei.dismake.work.Task;
-import com.healthmarketscience.rmiio.RemoteInputStream;
-import com.healthmarketscience.rmiio.RemoteInputStreamClient;
-import org.apache.commons.io.IOUtils;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.rmi.Naming;
@@ -126,7 +121,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
     @Override
     public void sendResults(Result result) {
         if (result.getExitCode() == 0) { // exit code for "success"
-            onTaskSuccess(result.getFileName(), result.getFileReader());
+            onTaskSuccess(result.getFileName(), result.getFileContent());
         } else { // failure during build
             onTaskFailure(result.getFileName(), result.getExitCode(), result.getStdErr());
         }
@@ -145,10 +140,10 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
         System.exit(exitCode);
     }
 
-    private void onTaskSuccess(String fileName, RemoteInputStream fileReader) {
+    private void onTaskSuccess(String fileName, byte[] fileContent) {
         System.out.println(Main.PREFIX + "Copying result file " + fileName + " from client");
-        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8)) {
-            IOUtils.copy(RemoteInputStreamClient.wrap(fileReader), writer);
+        try {
+            Files.write(Paths.get(fileName), fileContent);
         } catch (IOException e) {
             //TODO exception handling
             e.printStackTrace();
@@ -173,8 +168,8 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
 
             if (tasks.size() == 0 && lockedTasks.size() == 0) { // no more tasks, wake every hanging process
                 hangingClients.notifyAll();
-                System.out.println(Main.PREFIX+"DisMake terminated successfully :-)");
-                System.out.println(Main.PREFIX+"Server shutting down.");
+                System.out.println(Main.PREFIX + "DisMake terminated successfully :-)");
+                System.out.println(Main.PREFIX + "Server shutting down.");
                 try {
                     Naming.unbind("//" + this.url + "/RmiServer");
                 } catch (RemoteException | MalformedURLException | NotBoundException e) {
