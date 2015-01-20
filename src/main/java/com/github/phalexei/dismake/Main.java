@@ -18,7 +18,10 @@ import java.util.Arrays;
  */
 public class Main {
 
-    public static final String FIRST = "\\#~}]@|`\\^@]First"; //lol
+    /**
+     * Internal key used to save the main target.
+     */
+    public static final String FIRST = " :: ";
 
     /**
      * Program entry point.
@@ -75,20 +78,25 @@ public class Main {
      * @throws NotBoundException if anything else goes wrong
      * @throws MalformedURLException if something else goes wrong
      */
-    private static void startClient(String[] args) throws RemoteException, NotBoundException, MalformedURLException {
+    private static void startClient(String[] args) throws RemoteException, NotBoundException, MalformedURLException, InterruptedException {
         if (args.length != 2) {
             error();
             return;
         }
 
+        int nbCores = Runtime.getRuntime().availableProcessors();
+
         String serverUrl = args[0];
-        int nbThread = Integer.parseInt(args[1]);
+        float threadRatio = Integer.parseInt(args[1]) / 100f;
+        int nbThreads = (int) Math.min(1, Math.floor(nbCores * threadRatio));
         try {
-            //int cores = Runtime.getRuntime().availableProcessors();
-            Thread[] threads = new Thread[nbThread];
-            for (int i = 0; i < nbThread; i++) {
-                threads[i] =  new Thread(new RmiClient(serverUrl));
+            Thread[] threads = new Thread[nbThreads];
+            for (int i = 0; i < nbThreads; i++) {
+                threads[i] = new Thread(new RmiClient(serverUrl));
                 threads[i].start();
+            }
+            for (int i = 0; i < nbThreads; i++) {
+                threads[i].wait();
             }
         } catch (ConnectException | ConnectIOException e) {
             System.out.println("Failed to connect to Server!");
