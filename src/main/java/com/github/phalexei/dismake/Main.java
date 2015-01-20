@@ -94,7 +94,7 @@ public class Main {
 
         String serverUrl = args[0];
         float threadRatio = Integer.parseInt(args[1]) / 100f;
-        int nbThreads = (int) Math.min(1, Math.floor(nbCores * threadRatio));
+        int nbThreads = (int) Math.max(1, Math.floor(nbCores * threadRatio));
         try {
             Thread[] threads = new Thread[nbThreads];
             for (int i = 0; i < nbThreads; i++) {
