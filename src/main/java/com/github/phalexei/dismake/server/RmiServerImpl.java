@@ -8,11 +8,9 @@ import com.github.phalexei.dismake.work.Target;
 import com.github.phalexei.dismake.work.Task;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.rmi.Naming;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
@@ -117,6 +115,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
             }
 
             if (task != null && task.getTarget().getCommand() == null) {
+                onTaskSuccess(task.getTarget().getName(), null);
                 task = getTask();
             }
             return task;
@@ -147,8 +146,10 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
 
     private void onTaskSuccess(String fileName, byte[] fileContent) {
         try {
-            Files.write(Paths.get(fileName), fileContent);
-            Main.print("Copied result file " + fileName + " from client");
+            if (fileContent != null) {
+                Files.write(Paths.get(fileName), fileContent);
+                Main.print("Copied result file " + fileName + " from client");
+            }
         } catch (IOException e) {
             //TODO exception handling
             e.printStackTrace();

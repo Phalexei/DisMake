@@ -3,6 +3,7 @@ package com.github.phalexei.dismake.work;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +33,12 @@ public class Task implements Serializable {
         this.target = target;
         this.files = new HashMap<>();
         for (Target t : target.getDependencies().values()) {
-            this.files.put(t.getName(), Files.readAllBytes(Paths.get(t.getName())));
+            Path p = Paths.get(t.getName());
+            byte[] bytes = null;
+            if (Files.exists(p)) {
+                bytes = Files.readAllBytes(p);
+            }
+            this.files.put(t.getName(), bytes);
         }
     }
 
