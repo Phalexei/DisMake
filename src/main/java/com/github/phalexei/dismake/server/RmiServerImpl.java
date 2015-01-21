@@ -175,11 +175,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                 hangingClients.notifyAll();
                 Main.print("DisMake terminated successfully :-)");
                 Main.print("Server shutting down.");
-                try {
-                    Naming.unbind("//" + this.url + "/RmiServer");
-                } catch (RemoteException | MalformedURLException | NotBoundException e) {
-                    System.exit(0);
-                }
+                System.exit(0);
             }
         }
     }

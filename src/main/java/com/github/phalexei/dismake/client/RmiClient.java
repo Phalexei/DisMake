@@ -93,12 +93,12 @@ public class RmiClient implements Runnable {
                 };
                 Main.print("Executing " + Arrays.toString(cmd));
                 Process p = Runtime.getRuntime().exec(cmd);
-                Main.print("Done.");
 
                 String stdOut = IOUtils.toString(p.getInputStream());
                 String stdErr = IOUtils.toString(p.getErrorStream());
 
                 p.waitFor();
+                Main.print("Done.");
                 result = new Result(myTask, stdOut, stdErr, p.exitValue());
             }
         } catch (IOException e) {
