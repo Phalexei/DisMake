@@ -25,9 +25,7 @@ public class Parser {
 
 	public static Map<String, Target> parse(String fileName) throws IOException, DependencyNotFoundException {
 		Map<String, Target> targets = readTargets(fileName);
-		System.out.println("readTargets done");
 		populateDependencies(targets);
-		System.out.println("populating done");
 		return targets;
 	}
 
