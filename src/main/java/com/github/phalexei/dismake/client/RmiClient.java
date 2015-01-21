@@ -88,7 +88,7 @@ public class RmiClient implements Runnable {
             if (this.debugMode) {
                 Main.print("Copy complete");
             } else {
-                Main.print("Copied " + dependencies.size() + "dependencies from Server");
+                Main.print("Copied " + dependencies.size() + " dependencies from Server");
             }
         }
 
