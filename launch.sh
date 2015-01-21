@@ -26,6 +26,6 @@ do
 #echo "$line" ;
 ssh -o "StrictHostKeyChecking no" $line "
   cd $DIR
-java -jar $CURPATH/target/DisMake.jar --client $HOST $3
+java -jar $CURPATH/target/DisMake.jar --client $HOST $2
 " &
 done
