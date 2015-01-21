@@ -27,7 +27,6 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
         }
     }
 
-    private final String              url;
     private final Queue<Task>         tasks;
     private final Map<String, Target> lockedTasks;
     private final Object              clientsLock;
@@ -36,8 +35,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
     public RmiServerImpl(String url, String fileName, String theTarget) throws IOException, DependencyNotFoundException, MainTargetNotFoundException {
         super(0);    // required to avoid the 'rmic' step
         this.parsingDone = false;
-        this.url = url;
-        Main.print("RMI server started on " + this.url);
+        Main.print("RMI server started on " + url);
 
         try { //special exception handler for registry creation
             LocateRegistry.createRegistry(1099);
@@ -49,7 +47,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
 
         clientsLock = new Object();
         // Bind this object instance to the name "RmiServer"
-        Naming.rebind("//" + this.url + "/RmiServer", this);
+        Naming.rebind("//" + url + "/RmiServer", this);
         Main.print("PeerServer bound in registry");
 
         Map<String, Target> map = Parser.parse(fileName);
@@ -95,7 +93,6 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                 try {
                     clientsLock.wait();
                 } catch (InterruptedException e) {
-                    //TODO exception handling
                     e.printStackTrace();
                 }
             }
@@ -105,7 +102,6 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                 try {
                     clientsLock.wait();
                 } catch (InterruptedException e) {
-                    //TODO exception handling
                     e.printStackTrace();
                 }
 
@@ -137,7 +133,6 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
     }
 
     private void onTaskFailure(String taskName, int exitCode, String stdErr) {
-        //TODO: stop the whole process (maybe ?) and display error properly
         Main.print(taskName + " failed with error code: " + exitCode);
         Main.print("More information:");
         Main.print(stdErr);
@@ -151,7 +146,6 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                 Main.print("Copied result file " + fileName + " from client");
             }
         } catch (IOException e) {
-            //TODO exception handling
             e.printStackTrace();
         }
 
@@ -165,7 +159,6 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                             lockedTasks.remove(t.getName());
                             clientsLock.notify();
                         } catch (IOException e) {
-                            //TODO exception handling
                             e.printStackTrace();
                         }
                     }

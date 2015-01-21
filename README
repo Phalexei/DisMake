@@ -18,5 +18,5 @@ Comment compiler ?
 
 Comment lancer l'application ?
 ====================================================================
-./launch.sh <chemin_nom_makefile> <pourcentage de coeurs par machine>
+./launch.sh <chemin_nom_makefile> <pourcentage de coeurs par machine> [<cible spécificique>]
 
