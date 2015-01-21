@@ -33,7 +33,10 @@ public class Parser {
 		if (targets != null) {
 			List<String> weakDependencies;
 			Target trueDependency;
+			int nbTarget = targets.size();
+			int i = 0;
 			for (Target target : targets.values()) {
+				System.out.println("Populating target n°" + i++ + "/" + nbTarget);
 				weakDependencies = target.getWeakDependencies();
 				for (String weakDependency : weakDependencies) {
 					trueDependency = targets.get(weakDependency);
@@ -72,6 +75,10 @@ public class Parser {
 
 		for (int i = 0; i < fileContents.size(); i++) {
 			currentLine = fileContents.get(i).replaceAll("\t", "");
+
+			if (i % 20 == 0) {
+				System.out.println("read target n°" + i);
+			}
 
 			// Ignore empty lines
 			if (!currentLine.isEmpty() && !currentLine.startsWith("#")) {
