@@ -60,7 +60,7 @@ public class Main {
      * @throws IOException if anything goes wrong
      */
     private static void startServer(String[] args) throws IOException {
-        PRINT_PREFIX = "[Server " + InetAddress.getLocalHost().getCanonicalHostName() + " ] ";
+        PRINT_PREFIX = "[Server " + InetAddress.getLocalHost().getCanonicalHostName() + "  ] ";
 
         if (args.length != 2 && args.length != 3) {
             error();
