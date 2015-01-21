@@ -24,10 +24,12 @@ public class RmiClient implements Runnable {
 
     private final RmiServer server;
     private final boolean   debugMode;
+    private final Object    writingLock;
 
     public RmiClient(String serverUrl, boolean debugMode) throws RemoteException, NotBoundException, MalformedURLException {
         this.server = (RmiServer) Naming.lookup("//" + serverUrl + "/RmiServer");
         this.debugMode = debugMode;
+        this.writingLock = new Object();
     }
 
     public void run() {
@@ -68,17 +70,19 @@ public class RmiClient implements Runnable {
             long lastPrintTime = 0;
             int fileCount = 1;
             for (Entry<String, byte[]> file : dependencies) {
-                if (file.getValue() != null) {
-                    try {
-                        if (this.debugMode && System.currentTimeMillis() - 100 > lastPrintTime) {
-                            lastPrintTime = System.currentTimeMillis();
-                            Main.print("\tCopying file " + fileCount + "/" + dependencies.size() + "...");
-                        }
-                        Files.write(Paths.get(file.getKey()), file.getValue());
-                        fileCount++;
-                    } catch (IOException e) {
-                        this.server.errorOnTask(myTask);
+                try {
+                    if (this.debugMode && System.currentTimeMillis() - 100 > lastPrintTime) {
+                        lastPrintTime = System.currentTimeMillis();
+                        Main.print("\tCopying file " + fileCount + "/" + dependencies.size() + "...");
                     }
+                    if (file.getValue() != null) {
+                        synchronized (this.writingLock) {
+                            Files.write(Paths.get(file.getKey()), file.getValue());
+                        }
+                    }
+                    fileCount++;
+                } catch (IOException e) {
+                    this.server.errorOnTask(myTask);
                 }
             }
             if (this.debugMode) {
