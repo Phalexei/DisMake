@@ -23,7 +23,7 @@ import java.util.Set;
 public class RmiClient implements Runnable {
 
     private final RmiServer server;
-    private final boolean debugMode;
+    private final boolean   debugMode;
 
     public RmiClient(String serverUrl, boolean debugMode) throws RemoteException, NotBoundException, MalformedURLException {
         this.server = (RmiServer) Naming.lookup("//" + serverUrl + "/RmiServer");
@@ -62,13 +62,15 @@ public class RmiClient implements Runnable {
 
         Set<Entry<String, byte[]>> dependencies = myTask.getFiles().entrySet();
         if (dependencies.size() > 0) {
-            Main.print("Copying " + dependencies.size() + " dependencies from Server");
+            if (this.debugMode) {
+                Main.print("Copying " + dependencies.size() + " dependencies from Server");
+            }
             long lastPrintTime = 0;
             int fileCount = 1;
             for (Entry<String, byte[]> file : dependencies) {
                 if (file.getValue() != null) {
                     try {
-                        if (System.currentTimeMillis() - 500 > lastPrintTime) {
+                        if (this.debugMode && System.currentTimeMillis() - 100 > lastPrintTime) {
                             lastPrintTime = System.currentTimeMillis();
                             Main.print("\tCopying file " + fileCount + "/" + dependencies.size() + "...");
                         }
@@ -79,29 +81,28 @@ public class RmiClient implements Runnable {
                     }
                 }
             }
-            Main.print("Copy complete");
+            if (this.debugMode) {
+                Main.print("Copy complete");
+            } else {
+                Main.print("Copied " + dependencies.size() + "dependencies from Server");
+            }
         }
 
         try {
-            if (myTask.getTarget().getCommand() == null) {
-                Main.print("Target '" + myTask.getTarget().getName() + "' has no associated command, skipping.");
-                result = new Result(myTask, "", "", 0);
-            } else {
-                String[] cmd = new String[]{
-                        "/bin/sh",
-                        "-c",
-                        "PATH=.:$PATH " + myTask.getTarget().getCommand()
-                };
-                Main.print("Executing " + Arrays.toString(cmd));
-                Process p = Runtime.getRuntime().exec(cmd);
+            String[] cmd = new String[]{
+                    "/bin/sh",
+                    "-c",
+                    "PATH=.:$PATH " + myTask.getTarget().getCommand()
+            };
+            Main.print("Executing " + Arrays.toString(cmd));
+            Process p = Runtime.getRuntime().exec(cmd);
 
-                String stdOut = IOUtils.toString(p.getInputStream());
-                String stdErr = IOUtils.toString(p.getErrorStream());
+            String stdOut = IOUtils.toString(p.getInputStream());
+            String stdErr = IOUtils.toString(p.getErrorStream());
 
-                p.waitFor();
-                Main.print("Done.");
-                result = new Result(myTask, stdOut, stdErr, p.exitValue());
-            }
+            p.waitFor();
+            Main.print("Done.");
+            result = new Result(myTask, stdOut, stdErr, p.exitValue());
         } catch (IOException e) {
             //TODO exception handling
             e.printStackTrace();
