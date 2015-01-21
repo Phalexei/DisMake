@@ -146,9 +146,9 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
     }
 
     private void onTaskSuccess(String fileName, byte[] fileContent) {
-        Main.print("Copying result file " + fileName + " from client");
         try {
             Files.write(Paths.get(fileName), fileContent);
+            Main.print("Copied result file " + fileName + " from client");
         } catch (IOException e) {
             //TODO exception handling
             e.printStackTrace();
