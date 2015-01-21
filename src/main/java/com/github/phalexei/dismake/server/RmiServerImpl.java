@@ -92,6 +92,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
     @Override
     public Task getTask() throws RemoteException {
         synchronized (this.hangingClients) {
+            Task task;
             while (!this.parsingDone) {
                 try {
                     hangingClients.wait();
@@ -101,7 +102,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                 }
             }
             if (tasks.size() > 0) {
-                return tasks.poll();
+                task = tasks.poll();
             } else if (lockedTasks.size() > 0) { // no task available right now, but in the future there will be
                 try {
                     hangingClients.wait();
@@ -110,10 +111,15 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                     e.printStackTrace();
                 }
 
-                return tasks.size() > 0 ? tasks.poll() : null;
+                task =  tasks.size() > 0 ? tasks.poll() : null;
             } else { // nothing more to do
-                return null;
+                task =  null;
             }
+
+            if (task != null && task.getTarget().getCommand() == null) {
+                task = getTask();
+            }
+            return task;
         }
     }
 
