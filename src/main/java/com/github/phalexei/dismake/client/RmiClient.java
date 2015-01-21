@@ -62,22 +62,24 @@ public class RmiClient implements Runnable {
         Result result = null;
 
         Set<Entry<String, byte[]>> dependencies = myTask.getFiles().entrySet();
-        Main.print("Copying " + dependencies.size() + " dependencies from Server");
-        long lastPrintTime = 0;
-        int fileCount = 1;
-        for (Entry<String, byte[]> file : dependencies) {
-            try {
-                if (System.currentTimeMillis() - 500 > lastPrintTime) {
-                    lastPrintTime = System.currentTimeMillis();
-                    Main.print("\tCopying file " + fileCount + "/" + dependencies.size() + "...");
+        if (dependencies.size() > 0) {
+            Main.print("Copying " + dependencies.size() + " dependencies from Server");
+            long lastPrintTime = 0;
+            int fileCount = 1;
+            for (Entry<String, byte[]> file : dependencies) {
+                try {
+                    if (System.currentTimeMillis() - 500 > lastPrintTime) {
+                        lastPrintTime = System.currentTimeMillis();
+                        Main.print("\tCopying file " + fileCount + "/" + dependencies.size() + "...");
+                    }
+                    Files.write(Paths.get(file.getKey()), file.getValue());
+                    fileCount++;
+                } catch (IOException e) {
+                    this.server.errorOnTask(myTask);
                 }
-                Files.write(Paths.get(file.getKey()), file.getValue());
-                fileCount++;
-            } catch (IOException e) {
-                this.server.errorOnTask(myTask);
             }
+            Main.print("Copy complete");
         }
-        Main.print("Copy complete");
 
         try {
             if (myTask.getTarget().getCommand() == null) {
