@@ -19,7 +19,7 @@ for line in $(cat $CURPATH/clients.txt);
 do 
 #echo "$line" ;
 ssh -o "StrictHostKeyChecking no" $line "mkdir -p $(dirname $DIR)"
-scp -r $DIR $line:$DIR
+scp -r -q $DIR $line:$DIR
 done
 for line in $(cat $CURPATH/clients.txt);
 do
