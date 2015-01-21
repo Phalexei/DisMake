@@ -30,7 +30,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
     private final String              url;
     private final Queue<Task>         tasks;
     private final Map<String, Target> lockedTasks;
-    private final Object              hangingClients;
+    private final Object              clientsLock;
     private       boolean             parsingDone;
 
     public RmiServerImpl(String url, String fileName, String theTarget) throws IOException, DependencyNotFoundException, MainTargetNotFoundException {
@@ -47,7 +47,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
             Main.print("java RMI registry already exists.");
         }
 
-        hangingClients = new Object();
+        clientsLock = new Object();
         // Bind this object instance to the name "RmiServer"
         Naming.rebind("//" + this.url + "/RmiServer", this);
         Main.print("PeerServer bound in registry");
@@ -85,18 +85,18 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
         }
         System.out.println("parsing done");
         this.parsingDone = true;
-        synchronized (this.hangingClients) {
-            this.hangingClients.notifyAll();
+        synchronized (this.clientsLock) {
+            this.clientsLock.notifyAll();
         }
     }
 
     @Override
     public Task getTask() throws RemoteException {
-        synchronized (this.hangingClients) {
+        synchronized (this.clientsLock) {
             Task task;
             while (!this.parsingDone) {
                 try {
-                    hangingClients.wait();
+                    clientsLock.wait();
                 } catch (InterruptedException e) {
                     //TODO exception handling
                     e.printStackTrace();
@@ -106,7 +106,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                 task = tasks.poll();
             } else if (lockedTasks.size() > 0) { // no task available right now, but in the future there will be
                 try {
-                    hangingClients.wait();
+                    clientsLock.wait();
                 } catch (InterruptedException e) {
                     //TODO exception handling
                     e.printStackTrace();
@@ -158,7 +158,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
             e.printStackTrace();
         }
 
-        synchronized (hangingClients) {
+        synchronized (clientsLock) {
             for (Target t : lockedTasks.values()) {
                 if (t.getDependencies().containsKey(fileName)) {
                     t.resolveOneDependency();
@@ -166,7 +166,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
                         try {
                             tasks.add(new Task(t));
                             lockedTasks.remove(t.getName());
-                            hangingClients.notify();
+                            clientsLock.notify();
                         } catch (IOException e) {
                             //TODO exception handling
                             e.printStackTrace();
@@ -176,7 +176,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
             }
 
             if (tasks.size() == 0 && lockedTasks.size() == 0) { // no more tasks, wake every hanging process
-                hangingClients.notifyAll();
+                clientsLock.notifyAll();
                 Main.print("DisMake terminated successfully :-)");
                 Main.print("Server shutting down.");
                 System.exit(0);
