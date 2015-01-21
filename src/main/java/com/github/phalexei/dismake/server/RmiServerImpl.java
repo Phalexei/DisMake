@@ -54,6 +54,8 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
 
         Map<String, Target> map = Parser.parse(fileName);
 
+        System.out.println("Parsing done.");
+
         Target mainTarget;
         if (theTarget != null) {
             mainTarget = map.get(theTarget);
@@ -81,6 +83,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer {
         } else {
             throw new MainTargetNotFoundException("Target : " + theTarget + "not found in " + fileName);
         }
+        System.out.println("parsing done");
         this.parsingDone = true;
         synchronized (this.hangingClients) {
             this.hangingClients.notifyAll();
