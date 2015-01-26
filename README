@@ -2,7 +2,7 @@ DisMake
 =======
 
 *Langage utilisé = Java
-*Libraire utilisée = RMI
+*Librairie utilisée = RMI
 *Objectifs = Executer un makefile de façon distribué
 *Date = Janvier 2015
 
