@@ -64,7 +64,7 @@ public class Parser {
 	}
 
 	private static Map<String, Target> readTargets(String fileName) throws IOException {
-		Map<String, Target> targets = new HashMap<>();
+		Map<String, Target> targets = new LinkedHashMap<>();
 		List<String> dependencies = new ArrayList<>();
 
 		List<String> fileContents = Files.readAllLines(Paths.get(fileName), StandardCharsets.UTF_8);
