@@ -123,6 +123,7 @@ public class Main {
             }
         } catch (ConnectException | ConnectIOException e) {
             Main.print("Failed to connect to Server!");
+            e.printStackTrace();
             System.exit(1337);
         }
     }

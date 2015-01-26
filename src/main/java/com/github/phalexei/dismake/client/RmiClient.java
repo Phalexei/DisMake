@@ -26,8 +26,21 @@ public class RmiClient implements Runnable {
     private final boolean   debugMode;
     private final Object    writingLock;
 
-    public RmiClient(String serverUrl, boolean debugMode) throws RemoteException, NotBoundException, MalformedURLException {
-        this.server = (RmiServer) Naming.lookup("//" + serverUrl + "/RmiServer");
+    public RmiClient(String serverUrl, boolean debugMode) throws RemoteException, NotBoundException, MalformedURLException, InterruptedException {
+        long startTime = System.currentTimeMillis();
+        RmiServer server = null;
+        while (server == null) {
+            try {
+                server = (RmiServer) Naming.lookup("//" + serverUrl + "/RmiServer");
+            } catch (Exception e) {
+                if (System.currentTimeMillis() - startTime > 5 * 60 * 1000) {
+                    System.exit(-1);
+                }
+
+                Thread.sleep(500);
+            }
+        }
+        this.server = server;
         this.debugMode = debugMode;
         this.writingLock = new Object();
     }
